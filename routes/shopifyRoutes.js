@@ -28,7 +28,7 @@ module.exports = function(app){
                 
                 console.log(`Updating ${storesToUpdate[i]} for ${Object.keys(items)}`);
                 tools.updateStoreInventoryBySkus(storesToUpdate[i], items).then((response)=>{
-                    res.send(response);
+                    console.log(response);
                 });
             }   
         });
@@ -55,7 +55,7 @@ module.exports = function(app){
 
     app.get("/:storeName/webhooks/create", (req, res) =>{
         let storeName = req.params.storeName;
-        let address = `${process.env.NGROK_URL}/${storeName}/orders`;
+        let address = `${req.get('host')}/${storeName}/orders`;
         let topic = "orders/create";
         let format = "json";
         
