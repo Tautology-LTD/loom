@@ -105,7 +105,7 @@ module.exports = {
 
     updateStoreInventoryBySkus: function (store, items){
        return new Promise((resolve, reject)=>{
-        if(items.length){
+        if(items){
             let store_location_id = module.exports.getStoreLocationId(store);
             let skus = [];
             for(let sku in items){

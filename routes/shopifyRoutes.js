@@ -20,7 +20,7 @@ module.exports = function(app){
                 
             }
             
-            console.log(`Processing ${items.length} items.`);
+            console.log(`Processing ${Object.keys(items).length} items.`);
             console.log(items);
             for(let i in storesToUpdate){
                 
