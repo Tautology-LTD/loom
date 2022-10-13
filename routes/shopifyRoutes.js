@@ -44,13 +44,12 @@ module.exports = function(app){
     app.get("/:storeName/webhooks", (req, res) =>{
         let storeName = req.params.storeName;
 
-        tools.getRequest(storeName, "webhooks.json",function(err, res2, body){
-            if(err){
-                res.send(err);
-            }else{
-                res.send(body);
-            }
-        })
+        tools.getRequest(storeName, "webhooks.json").then((response)=>{
+            res.send(response);
+        }).catch((err)=>{
+            console.log(err);
+            res.send(err);
+        });
     });
 
     app.get("/:storeName/webhooks/create", (req, res) =>{
@@ -65,13 +64,11 @@ module.exports = function(app){
             format
         }
         console.log(webhook);
-        tools.postRequest(storeName, "webhooks.json", { webhook }, function(err, res2, body) {
-            if(err){
-                res.send(err);
-            }else{
-                res.send("Webhook created: " + body);
-
-            }
+        tools.postRequest(storeName, "webhooks.json", { webhook }).then((response)=>{
+           res.send(response);
+        }).catch((err)=>{
+            console.log(err);
+            res.send(err);
         });    
         
     });
@@ -79,17 +76,12 @@ module.exports = function(app){
         let storeName = req.params.storeName;
         let webhookId = req. params.webhookId;
 
-        tools.delRequest(storeName, `webhooks/${webhookId}.json`,  (err, res2, body)=>{
-             console.log(err);
-           
-            if(err){
-                res.send(err);
-            }else{
-                res.send(`Deleted Webhook ID ${webhookId}`);
-
-            }
-        
-
+        tools.delRequest(storeName, `webhooks/${webhookId}.json`).then((response)=>{
+            console.log(response);
+            res.send(`Deleted Webhook ID ${webhookId}`);
+       }).catch((err)=>{
+            console.log(err);
+            res.send(err);
         })
     });
 
