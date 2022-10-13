@@ -12,5 +12,8 @@
     "raw-body": "^2.5.1",
     "request-promise": "^4.2.6",
     "shopify-api-node": "^3.11.3"
+  },
+  "scripts": {
+    "start" : "node src/index.js"
   }
 }
