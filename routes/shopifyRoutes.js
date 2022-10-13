@@ -12,25 +12,29 @@ module.exports = function(app){
 
         getRawBody(req).then((data)=>{
             let order = JSON.parse(data.toString('utf8'));
-            let line_items = order.line_items;
-            console.log(`${line_items.length} line_items in sale.`);
-            let items = {};
-            for(let i in line_items){
-                items[line_items[i].sku] = { quantity: line_items[i].fulfillable_quantity};
+            if(order){
+                res.status(200);
+                res.send();
+                let line_items = order.line_items;
+                console.log(`${line_items.length} line_items in sale.`);
+                let items = {};
+                for(let i in line_items){
+                    items[line_items[i].sku] = { quantity: line_items[i].fulfillable_quantity};
+                    
+                }
                 
+                console.log(`Processing ${Object.keys(items).length} items.`);
+                console.log(items);
+                for(let i in storesToUpdate){
+                    
+                    console.log(`Updating ${storesToUpdate[i]} for ${Object.keys(items)}`);
+                    tools.updateStoreInventoryBySkus(storesToUpdate[i], items).then((response)=>{
+                        console.log(response);
+                    });
+                }   
             }
-            
-            console.log(`Processing ${Object.keys(items).length} items.`);
-            console.log(items);
-            for(let i in storesToUpdate){
-                
-                console.log(`Updating ${storesToUpdate[i]} for ${Object.keys(items)}`);
-                tools.updateStoreInventoryBySkus(storesToUpdate[i], items).then((response)=>{
-                    console.log(response);
-                });
-            }   
+           
         });
-
        
     });
 

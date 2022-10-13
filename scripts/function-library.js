@@ -132,7 +132,7 @@ module.exports = {
                                             if(response.errors){
                                                 console.log(`ERRORS: ${response.errors}`);
                                             }else{
-                                                console.log(`Adjusted ${response.inventory_level.inventory_item_id}. Now available: ${response.inventory_level.available}.`);
+                                                console.log(`Adjusted ${response}.`);
                                             }
                                         }).catch((err)=>{
                                             console.log(err);
