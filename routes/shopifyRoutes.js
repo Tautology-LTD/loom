@@ -14,11 +14,9 @@ module.exports = function(app){
             let order = JSON.parse(data.toString('utf8'));
             let line_items = order.line_items;
             console.log(`${line_items.length} line_items in sale.`);
-            let items = [];
+            let items = {};
             for(let i in line_items){
-                let item = {};
-                item[line_items[i].sku] = { quantity: line_items[i].fulfillable_quantity};
-                items.push(item);
+                items[line_items[i].sku] = { quantity: line_items[i].fulfillable_quantity};
                 
             }
             
