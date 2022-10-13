@@ -12,6 +12,7 @@ require("../routes/shopifyRoutes")(app);
 
 //api routes
 app.get("/", (req, res) => {
+    res.send("Welcome to homepage.");
 });
 
 app.get('/shopify-api', (req, res) => {
