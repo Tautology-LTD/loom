@@ -55,7 +55,7 @@ module.exports = function(app){
 
     app.get("/:storeName/webhooks/create", (req, res) =>{
         let storeName = req.params.storeName;
-        let address = `${req.get('host')}/${storeName}/orders`;
+        let address = `https://${req.get('host')}/${storeName}/orders`;
         let topic = "orders/create";
         let format = "json";
         
