@@ -1,8 +1,39 @@
-const e = require("express");
 const tools = require("../scripts/function-library");
 const getRawBody = require('raw-body');
 
 module.exports = function(app){
+
+    app.get("/:masterStore/sync/:storeToUpdate", (req, res)=>{
+        res.send("This endpoint is under construction.");
+        res.end();
+        return;
+        let { storeToUpdate, masterStore } = req.params;
+        tools.updateStoreLevelByMaster(storeToUpdate, masterStore).then((response)=>{
+            res.send(response);
+        });
+    });
+
+    app.get("/:masterStore/sync", (req, res)=>{
+        res.send("This endpoint is under construction.");
+        res.end();
+        return;
+        let { masterStore } = req.params;
+        let storesToUpdate = tools.getStores().filter(item => item !== masterStore);
+        let allPromises = [];
+        for(let i = 0; i < storesToUpdate.length; i++){
+                        
+            console.log(`Updating ${storesToUpdate[i]}`);
+            allPromises.push( tools.updateStoreLevelByMaster(storesToUpdate[i], masterStore));
+        }   
+        Promise.all(allPromises).then((responses)=>{
+            for(let i in responses){
+                console.log(responses[i]);
+            }
+            console.log(`Updated ${storesToUpdate} with ${masterStore}'s levels`);
+
+            res.send(`Updated ${storesToUpdate} with ${masterStore}'s levels`);
+        })
+    });
 
     app.post("/:storeName/orders", (req, res) => {
         
@@ -12,27 +43,39 @@ module.exports = function(app){
 
         getRawBody(req).then((data)=>{
             let order = JSON.parse(data.toString('utf8'));
-            if(order){
-                res.status(200);
-                res.send();
-                let line_items = order.line_items;
-                console.log(`${line_items.length} line_items in sale.`);
-                let items = {};
-                for(let i in line_items){
-                    items[line_items[i].sku] = { quantity: line_items[i].fulfillable_quantity};
-                    
-                }
-                
-                console.log(`Processing ${Object.keys(items).length} items.`);
-                console.log(items);
-                for(let i in storesToUpdate){
-                    
-                    console.log(`Updating ${storesToUpdate[i]} for ${Object.keys(items)}`);
-                    tools.updateStoreInventoryBySkus(storesToUpdate[i], items).then((response)=>{
+            
+            console.log("Order", order);
+            tools.getOrderById(order.id).then((data)=>{
+                if(!data){
+                     tools.insertOrder(order).then((response)=>{
                         console.log(response);
-                    });
-                }   
-            }
+                     });
+                    
+                    let line_items = order.line_items;
+                    console.log(`${line_items.length} line_items in sale.`);
+                    
+                    
+                    console.log(`Processing ${Object.keys(line_items).length} items.`);
+                     for(let i = 0; i < storesToUpdate.length; i++){
+                        
+                        console.log(`Updating ${storesToUpdate[i]} for ${Object.keys(line_items)}`);
+                        tools.updateStoreInventoryBySkus(storesToUpdate[i], line_items).then((response)=>{
+                            console.log(response);
+                            if(i === storesToUpdate.length - 1){
+                                tools.updateOrderById(order.id);
+                            }
+
+                        });
+                    }   
+                    res.status(200);
+                    res.send();
+                }else{
+                    console.log("Order already received.");
+                    res.status(200);
+                    res.send();
+                }
+            })
+               
            
         });
        
@@ -66,9 +109,11 @@ module.exports = function(app){
             format
         }
         console.log(webhook);
-        tools.postRequest(storeName, "webhooks.json", { webhook }).then((response)=>{
-           res.send(response);
-        }).catch((err)=>{
+        tools.postRequest(storeName, "webhooks.json", { webhook })
+        .then((response)=>{
+            res.send(response);
+        })
+        .catch((err)=>{
             console.log(err);
             res.send(err);
         });    
@@ -78,12 +123,14 @@ module.exports = function(app){
         let storeName = req.params.storeName;
         let webhookId = req. params.webhookId;
 
-        tools.delRequest(storeName, `webhooks/${webhookId}.json`).then((response)=>{
+        tools.delRequest(storeName, `webhooks/${webhookId}.json`)
+        .then((response)=>{
             console.log(response);
             res.send(`Deleted Webhook ID ${webhookId}`);
-       }).catch((err)=>{
-            console.log(err);
-            res.send(err);
+        })
+        .catch((err)=>{
+            console.log(err.message);
+            res.send(err.message);
         })
     });
 
@@ -112,18 +159,7 @@ module.exports = function(app){
 
     app.get("/:storeName/products", (req, res) =>   {
         let storeName = req.params.storeName;
-        // tools.getRequest(req.params.storeName, "products.json", function (err, res, body) {
-        //     console.log(err);
-        //     let products = JSON.parse(body).products;
-        //     console.log(products[0].variants[0].sku);
-        //     console.log(products[0].variants[0].inventory_item_id);
-            
-        //     // for(let i in products){
-        //     //     for(let k in products[i].variants){
-                
-        //     //     }
-        //     // }
-        // });
+         
         console.log(`GET request for products at ${storeName}`);
         tools.getAllProducts(storeName).then((products)=>{
             console.log(`Got all the products ay lmao`);

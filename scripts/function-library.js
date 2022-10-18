@@ -1,7 +1,37 @@
 const request = require('request-promise');
+const { func } = require('../db/db');
+const insertWebhookData = require("../migrations/helpers/insert-webhook-data.js");
+const createWebhooksTable = require("../migrations/helpers/create-webhooks-table.js");
+const updateWebhookData = require("../migrations/helpers/update-webhook-data.js");
+const getWebhookData = require("../migrations/helpers/get-webhook-data.js");
+const getAllWebhookData = require("../migrations/helpers/get-all-webhook-data.js");
+
+const db = require("../db/db");
+console.log(db);
 
 module.exports = {
-
+    assembleItems: function (array, quantityField) {
+        let length = array.length;
+        let items = {};
+        for(let i = 0; i < length; i++){
+           if(array[i].variants){
+                let variants = array[i].variants;
+                for(let k = 0; k < array[i].variants.length; k++){
+                if(!variants[k].sku != null){
+                    items[variants[k].sku] = { quantity: variants[k][quantityField],
+                        sku:  variants[k].sku
+                    };
+                }
+        
+            }
+           }else{
+            items[array[i].sku] = { quantity: array[i][quantityField],
+                sku: array[i].sku
+            };
+           }
+        }
+        return items;
+    },
     //library functions for specific tasks
     getStoreURL: function (store){
         switch(store){
@@ -55,6 +85,7 @@ module.exports = {
 
     apiRequest: function (store, method, resource, body){
         return new Promise((resolve, reject)=>{
+           
             let TOKEN = module.exports.getShopifyToken(store);
             if(TOKEN){
                 let requestObject = {
@@ -66,11 +97,12 @@ module.exports = {
                     uri: `https://${module.exports.getStoreURL(store)}/admin/api/${ process.env.API_VERSION}/${resource}`,
 
                 }
+                console.log(`${requestObject.method} ${requestObject.uri}`);   
+
                 if(body){
                     requestObject.body = JSON.stringify(body);
                 }
-                console.log("Requesting...");   
-                request(requestObject).then(resolve);
+                request(requestObject).then(resolve).catch(reject);
             }else{
                 reject(`No token found for ${store}`);
             }
@@ -92,49 +124,116 @@ module.exports = {
 
     updateStoreLevelByMaster: function (storeToUpdate, masterStore){
         return new Promise((resolve, reject)=>{
+            console.log(`Syncing ${storeToUpdate}'s levels to the leveld of ${masterStore}`);
             let store_location_id = module.exports.getStoreLocationId(storeToUpdate);
 
+          if(store_location_id){
             module.exports.getAllProducts(masterStore).then((masterStoreProducts)=>{
+ 
+               if(masterStoreProducts){
+                let masterItems = module.exports.assembleItems(masterStoreProducts, `inventory_quantity`);
+ 
+                let adjustedProductsCount = 0;
+            //    let masterSkus = Object.keys(masterItems);
+                let doneProducts = [];
+                let allPromises = [];
+
                 module.exports.getAllProducts(storeToUpdate).then((storeToUpdateProducts)=>{
-                    
+                     if(storeToUpdateProducts){
+                        let timeout;
+                        let limit = 4;
+                        let currentNumberOfCalls = 0;
+                        
+                        console.log(`Got ${storeToUpdateProducts.length} products from ${storeToUpdate}`);
+                        for(let i in storeToUpdateProducts){
+                            let variants = storeToUpdateProducts[i].variants;
+                            if(!doneProducts.includes(storeToUpdateProducts[i].id)){
+                                for(let k in variants){
+                                    // if(typeof variants[k].sku != null && masterSkus.includes(variants[k].sku) && variants[k].sku.includes("TEST_SKU")
+                                    // &&  masterItems[variants[k].sku].quantity != variants[k].inventory_quantity ){
+                                     if(timeout){
+                                        
+                                     }else{
+
+                                     }
+                                        let body = {
+                                            location_id: store_location_id,
+                                            inventory_item_id: variants[k].inventory_item_id,
+                                         //   available: masterItems[variants[k].sku].quantity
+                                            available: variants[k].inventory_quantity
+                                        };
+                                            console.log(`Setting ${variants[k].sku}  ${body.inventory_item_id} to ${body.available} at ${storeToUpdate}`);
+                                            adjustedProductsCount++;
+                                            allPromises.push( module.exports.postRequest(storeToUpdate, "inventory_levels/set.json", body));
+                                    
+                              //      }  
+                                    doneProducts.push(storeToUpdateProducts[i].id);
+                                }
+                            }      
+                        }
+
+                        Promise.all(allPromises)
+                        .then((values)=>{
+                            values.forEach((item)=>{
+                                console.log(`Set ${item}.`);
+                            })
+                            resolve(`Set ${adjustedProductsCount} products at ${storeToUpdate}`);
+                        }).catch((error)=>{
+                            console.log(error.error);
+                        })
+                    }else{
+                        resolve(`No products at ${storeToUpdate}`);
+                    }
                 });   
+               }else{
+                resolve(`No products at ${masterStore}`);
+               }
             });
+          }else{
+            resolve(`No store id for ${storeToUpdate}`);
+          }
         });
 
     },
 
-    updateStoreInventoryBySkus: function (store, items){
+    updateStoreInventoryBySkus: function (store, line_items){
        return new Promise((resolve, reject)=>{
+        console.log(line_items);
+        let items = module.exports.assembleItems(line_items, `fulfillable_quantity`);
+                  
+                    
         if(items){
             let store_location_id = module.exports.getStoreLocationId(store);
-            let skus = [];
-            for(let sku in items){
-                skus.push(sku);
-            }
-            console.log(skus);
-            if(store_location_id){
+            let skus = Object.keys(items);
+            
+             if(store_location_id){
                 module.exports.getAllProducts(store).then((products)=>{
                     console.log(`Got ${products.length} products from ${store}`);
                     let adjustedProductsCount = 0;
+                    let doneProducts = [];
+
                     if(products){
                         for(let i in products){
                             let variants = products[i].variants;
                             for(let k in variants){
-                                if(skus.includes(variants[k].sku)){
+                                if(skus.includes(variants[k].sku) && variants[k].sku.includes("TEST_SKU")){
                                     let body = {
                                         location_id: store_location_id,
                                         inventory_item_id: variants[k].inventory_item_id,
                                         available_adjustment: -items[variants[k].sku].quantity
                                     };
-                                        console.log(`Adjusting ${body.inventory_item_id} by ${body.available_adjustment}`);
+                                        console.log(`Adjusting ${body.inventory_item_id} ${variants[k].sku} by ${body.available_adjustment} at ${store}`);
                                         adjustedProductsCount++;
-                                        module.exports.postRequest(store, "inventory_levels/adjust.json", body).then((response)=>{
+                                        doneProducts.push(products[i].id);
+                                        module.exports.postRequest(store, "inventory_levels/adjust.json", body)
+                                        .then((response)=>{
                                             if(response.errors){
                                                 console.log(`ERRORS: ${response.errors}`);
                                             }else{
                                                 console.log(`Adjusted ${response}.`);
                                             }
-                                        }).catch((err)=>{
+                                        })
+                                        .catch((err)=>{
                                             console.log(err);
                                         });
                                 
@@ -192,13 +291,12 @@ module.exports = {
                         products = newProducts;
                     }   
                     console.log(`Number of products so far: ${products.length}`);
-                    let nextPageLink = `products.json?limit=250&since_id=${products[products.length-1].id}`
+                    let nextPageLink = `products.json?limit=250&since_id=${products[products.length-1].id}`;
                 
                     module.exports.getAllProducts(store, nextPageLink, products).then(resolve);
 
                 }else if(oldProducts){
-                    console.log("Old products")
-                    console.log(`Resolving promise with ${oldProducts.length} products`);
+                     console.log(`Resolving promise with ${oldProducts.length} products`);
                     resolve(oldProducts);
                 }else{
                     console.log(`Resolving promise with ${products.length} products`);
@@ -208,7 +306,35 @@ module.exports = {
             });
        });
     },
+   
+     
+    getOrderById: function(orderID) {
+        console.log(getWebhookData);
+        return db.oneOrNone(getWebhookData, [orderID]);
+      
+    },
+    updateOrderById: function(orderId){
+        console.log(updateWebhookData);
+        return db.none(updateWebhookData, [Date.now(), orderId]);    
 
+   },
+   insertOrder: function(orderData){
+        console.log(insertWebhookData);
+        return db.none(insertWebhookData, [orderData.id, `order/create`, Date.now(), orderData]);    
+   },
+  
+   createWebhookTable: function(){
+        console.log(createWebhooksTable);
+        return db.none(createWebhooksTable);
+       
+   },
+   queryWebhooks: function(){
+        console.log(getWebhookData);
+        return db.manyOrNone(`SELECT *
+           FROM webhooks`);
+          
+            
+   },
      
     // updateStoreSkuInventory: function (store, sku, adjustment){
     //     console.log(sku);`

@@ -6,10 +6,12 @@ const cookie = require('cookie');
 const express = require('express');
 require('dotenv').config()
 
-const app = express();
+const tools = require("../scripts/function-library");
+
+ const app = express();
+require("../routes/dbRoutes")(app);
 
 require("../routes/shopifyRoutes")(app);
-
 //api routes
 app.get("/", (req, res) => {
     res.send("Welcome to homepage.");
