@@ -218,13 +218,16 @@ module.exports = {
                         console.log(`No products at ${store}`);
                         resolve(`No products at ${store}`);
                     } else {
-                        let variants = [];
+                        let variants = {};
                         for (let product of products) {
                             for (let variant of product.variants) {
-                                variants.push(variant);
+                                variants[variant.id] = variant;
                             }
                         }
-                        console.log(`Got ${products.length} products, ${variants.length} variants from ${store}`);
+                        console.log(`Got ${products.length} products, ${Object.keys(variants).length} variants from ${store}`);
+                        console.log(`De-duplicating the variants from ${store}`);
+                        variants = Object.values(variants); // de-duplicate the variants
+                        console.log(`Now we have ${products.length} products, ${variants.length} variants from ${store}`);
                         let iterator = 0;
                         for (let variant of variants) {
                             iterator++;
@@ -256,15 +259,16 @@ module.exports = {
    
     getAllProducts: function (store, products = []) {
        return new Promise((resolve, reject)=>{
-            let link = "products.json?limit=250";
+            let limit = 250;
+            let link = `products.json?limit=${limit}`;
             if (products.length) {
                 link = `${link}&since_id=${products[products.length-1].id}`
             }
 
             module.exports.getRequest(store, link).then((res) => {
                 let newProducts = JSON.parse(res).products;
-                if (newProducts.length) {
-                    products = [...products, ...newProducts];
+                products = [...products, ...newProducts];
+                if (newProducts.length == limit) {
                     module.exports.getAllProducts(store, products).then(resolve);
                 } else {
                     console.log(`Resolving getAllProducts for ${store} with ${products.length} total products`);
