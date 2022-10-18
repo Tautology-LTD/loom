@@ -229,8 +229,8 @@ module.exports = {
                             if (skus.includes(variant.sku)) {
                                 let body = {
                                     location_id: store_location_id,
-                                    inventory_item_id: variants[k].inventory_item_id,
-                                    available_adjustment: -items[variants[k].sku].quantity
+                                    inventory_item_id: variant.inventory_item_id,
+                                    available_adjustment: -items[variant.sku].quantity
                                 };
                                 console.log(`Adjusting Inventory for Store: ${store}, InventoryItem ID: ${body.inventory_item_id}, SKU: ${variants[k].sku} by quantity: ${body.available_adjustment}`);
                                 module.exports.postRequest(store, "inventory_levels/adjust.json", body).then((response) => {
