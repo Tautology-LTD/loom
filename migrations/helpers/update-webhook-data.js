@@ -1,4 +1,3 @@
-
 module.exports = `
 UPDATE webhooks
 SET executed_at = $1

@@ -46,7 +46,7 @@ module.exports = function(app){
             
             console.log("Order", order);
             tools.getOrderById(order.id).then((data)=>{
-                if(!data){
+                if (!data) {
                      tools.insertOrder(order).then((response)=>{
                         console.log(response);
                      });
@@ -54,26 +54,22 @@ module.exports = function(app){
                     let line_items = order.line_items;
                     console.log(`${line_items.length} line_items in sale.`);
                     
-                    
                     console.log(`Processing ${Object.keys(line_items).length} items.`);
                      for(let i = 0; i < storesToUpdate.length; i++){
-                        
-                        console.log(`Updating ${storesToUpdate[i]} for ${Object.keys(line_items)}`);
                         tools.updateStoreInventoryBySkus(storesToUpdate[i], line_items).then((response)=>{
                             console.log(response);
                             if(i === storesToUpdate.length - 1){
-                                tools.updateOrderById(order.id);
+                                tools.setWebhookExecutedAtByOrderId(order.id);
                             }
 
                         });
                     }   
-                    res.status(200);
-                    res.send();
-                }else{
+                } else {
                     console.log("Order already received.");
-                    res.status(200);
-                    res.send();
                 }
+
+                res.status(200);
+                res.send();
             })
                
            

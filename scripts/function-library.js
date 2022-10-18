@@ -10,27 +10,30 @@ const db = require("../db/db");
 console.log(db);
 
 module.exports = {
-    assembleItems: function (array, quantityField) {
-        let length = array.length;
-        let items = {};
-        for(let i = 0; i < length; i++){
-           if(array[i].variants){
-                let variants = array[i].variants;
-                for(let k = 0; k < array[i].variants.length; k++){
-                if(!variants[k].sku != null){
-                    items[variants[k].sku] = { quantity: variants[k][quantityField],
-                        sku:  variants[k].sku
+    // Takes an array of items, and returns an object where the keys are the sku and the value is as on line 23 and 24
+    assembleItems: function (inputItems, quantityField) {
+        let outputItems = {};
+        for(let i = 0; i < inputItems.length; i++){
+           if(inputItems[i].variants){ // if the item variants, create an outputItem for each
+                let variants = inputItems[i].variants;
+                for(let k = 0; k < variants.length; k++){
+                    if(variants[k].sku != null){
+                        outputItems[variants[k].sku] = {
+                            quantity: variants[k][quantityField],
+                            sku:  variants[k].sku
+                        };
+                    }
+                }
+            }else{ // otherwise create an outputItem from the item itself
+                if(inputItems[i].sku != null){
+                    outputItems[inputItems[i].sku] = {
+                        quantity: inputItems[i][quantityField],
+                        sku: inputItems[i].sku
                     };
                 }
-        
             }
-           }else{
-            items[array[i].sku] = { quantity: array[i][quantityField],
-                sku: array[i].sku
-            };
-           }
         }
-        return items;
+        return outputItems;
     },
     //library functions for specific tasks
     getStoreURL: function (store){
@@ -197,69 +200,56 @@ module.exports = {
     },
 
     updateStoreInventoryBySkus: function (store, line_items){
-       return new Promise((resolve, reject)=>{
-        console.log(line_items);
-        let items = module.exports.assembleItems(line_items, `fulfillable_quantity`);
-                  
-                    
-        if(items){
-            let store_location_id = module.exports.getStoreLocationId(store);
+        return new Promise((resolve, reject)=>{
+            console.log(line_items);
+            let items = module.exports.assembleItems(line_items, `fulfillable_quantity`);
             let skus = Object.keys(items);
-            
-             if(store_location_id){
+            let store_location_id = module.exports.getStoreLocationId(store);
+                        
+            if (!skus.length) {
+                console.log(`No items.`);
+                resolve(`No items.`);
+            } else if (!store_location_id) {
+                console.log(`No location Id for store: ${store}`);
+                resolve(`No location Id for store: ${store}`);
+            } else {
                 module.exports.getAllProducts(store).then((products)=>{
                     console.log(`Got ${products.length} products from ${store}`);
                     let adjustedProductsCount = 0;
-                    let doneProducts = [];
 
-                    if(products){
+                    if (!products) {
+                        console.log(`No products at ${store}`);
+                        resolve(`No products at ${store}`);
+                    } else {
                         for(let i in products){
                             let variants = products[i].variants;
                             for(let k in variants){
-                                if(skus.includes(variants[k].sku) && variants[k].sku.includes("TEST_SKU")){
+                                if(skus.includes(variants[k].sku)){
                                     let body = {
                                         location_id: store_location_id,
                                         inventory_item_id: variants[k].inventory_item_id,
                                         available_adjustment: -items[variants[k].sku].quantity
                                     };
-                                        console.log(`Adjusting ${body.inventory_item_id} ${variants[k].sku} by ${body.available_adjustment} at ${store}`);
-                                        adjustedProductsCount++;
-                                        doneProducts.push(products[i].id);
-                                        module.exports.postRequest(store, "inventory_levels/adjust.json", body)
-                                        .then((response)=>{
-                                            if(response.errors){
-                                                console.log(`ERRORS: ${response.errors}`);
-                                            }else{
-                                                console.log(`Adjusted ${response}.`);
-                                            }
-                                        })
-                                        .catch((err)=>{
-                                            console.log(err);
-                                        });
-                                
+                                    console.log(`Adjusting ${body.inventory_item_id} ${variants[k].sku} by ${body.available_adjustment} at ${store}`);
+                                    adjustedProductsCount++;
+                                    module.exports.postRequest(store, "inventory_levels/adjust.json", body).then((response)=>{
+                                        if (response.errors) {
+                                            console.log(`ERRORS: ${response.errors}`);
+                                        } else {
+                                            console.log(`Adjusted ${response}.`);
+                                        }
+                                    }).catch((err)=>{
+                                        console.log(err);
+                                    });
                                 }  
                             }      
                         }
                         console.log(`Finished adjusting ${adjustedProductsCount} products.`);
                         resolve(`Finished attempting to adjust ${adjustedProductsCount} products.`);
-
-                    }else{
-                        console.log(`No products at ${store}`);
-
-                        resolve(`No products at ${store}`);
                     }
                 });
-            }else{
-                console.log(`No location Id for store: ${store}`);
-                resolve(`No location Id for store: ${store}`);
             }
-        
-        }else{
-            console.log(`No items.`);
-            resolve(`No items.`);
-        }
-                
-       });
+        });
     },
    
     getAllProducts: function (store, link, oldProducts){
@@ -313,7 +303,7 @@ module.exports = {
         return db.oneOrNone(getWebhookData, [orderID]);
       
     },
-    updateOrderById: function(orderId){
+    setWebhookExecutedAtByOrderId: function(orderId){
         console.log(updateWebhookData);
         return db.none(updateWebhookData, [Date.now(), orderId]);    
 
