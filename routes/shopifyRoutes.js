@@ -35,35 +35,27 @@ module.exports = function(app){
         })
     });
 
-    app.post("/:storeName/orders", (req, res) => {
-        
+    app.post("/:storeName/orders", (req, res) => {       
         let storeName = req.params.storeName;
         let storesToUpdate = tools.getStores().filter(item => item !== storeName);
-        console.log(`Recieved order/create notification for ${storeName}`);
 
         getRawBody(req).then((data)=>{
             let order = JSON.parse(data.toString('utf8'));
             
-            console.log("Order", order);
+            console.log(`Received order/create webhook for ${storeName}, order number ${order.id} updating ${storesToUpdate.join(', ')}`);
             tools.getOrderById(order.id).then((data)=>{
                 if (!data) {
-                     tools.insertOrder(order).then((response)=>{
+                    tools.insertOrder(order).then((response)=>{
                         console.log(response);
-                     });
-                    
-                    let line_items = order.line_items;
-                    console.log(`${line_items.length} line_items in sale.`);
-                    
-                    console.log(`Processing ${Object.keys(line_items).length} items.`);
-                     for(let i = 0; i < storesToUpdate.length; i++){
-                        tools.updateStoreInventoryBySkus(storesToUpdate[i], line_items).then((response)=>{
-                            console.log(response);
-                            if(i === storesToUpdate.length - 1){
-                                tools.setWebhookExecutedAtByOrderId(order.id);
-                            }
+                    });
 
-                        });
-                    }   
+                    let storePromises = []
+                    for (let i = 0; i < storesToUpdate.length; i++) {
+                        storePromises.push(tools.updateStoreInventoryBySkus(storesToUpdate[i], order.line_items));
+                    }
+                    Promise.all(storePromises).then((response) => {
+                        tools.setWebhookExecutedAtByOrderId(order.id);
+                    });
                 } else {
                     console.log("Order already received.");
                 }

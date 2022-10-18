@@ -201,17 +201,16 @@ module.exports = {
 
     updateStoreInventoryBySkus: function (store, line_items){
         return new Promise((resolve, reject)=>{
-            console.log(line_items);
             let items = module.exports.assembleItems(line_items, `fulfillable_quantity`);
             let skus = Object.keys(items);
             let store_location_id = module.exports.getStoreLocationId(store);
                         
             if (!skus.length) {
-                console.log(`No items.`);
-                resolve(`No items.`);
+                console.log(`No matching items found for store ${store}.`);
+                resolve(`No matching items found for store ${store}.`);
             } else if (!store_location_id) {
-                console.log(`No location Id for store: ${store}`);
-                resolve(`No location Id for store: ${store}`);
+                console.log(`No Location Id found for store: ${store}`);
+                resolve(`No Location Id found for store: ${store}`);
             } else {
                 module.exports.getAllProducts(store).then((products)=>{
                     console.log(`Got ${products.length} products from ${store}`);
@@ -231,7 +230,6 @@ module.exports = {
                                         available_adjustment: -items[variants[k].sku].quantity
                                     };
                                     console.log(`Adjusting ${body.inventory_item_id} ${variants[k].sku} by ${body.available_adjustment} at ${store}`);
-                                    adjustedProductsCount++;
                                     module.exports.postRequest(store, "inventory_levels/adjust.json", body).then((response)=>{
                                         if (response.errors) {
                                             console.log(`ERRORS: ${response.errors}`);
@@ -252,51 +250,25 @@ module.exports = {
         });
     },
    
-    getAllProducts: function (store, link, oldProducts){
+    getAllProducts: function (store, products = []) {
        return new Promise((resolve, reject)=>{
+            let link = "products.json?limit=250";
+            if (products.length) {
+                link = `${link}&since_id=${products[products.length-1].id}`
+            }
 
-            if(!link){//if no link, then first call
-                link = "products.json?limit=250";
-            }  
-            console.log(`Sending GET request to ${link} for ${store}`);
-
-            module.exports.getRequest(store, link).then((res)=>{
-                
-                // let headers = res.getHeaders();
-
+            module.exports.getRequest(store, link).then((res) => {
                 let newProducts = JSON.parse(res).products;
-                
-                // let nextPageInfo = headers.link.split(",");
-                // for(let i in nextPageInfo){
-                //     if(nextPageInfo[i].includes("next")){
-                //         nextPageLink = nextPageInfo[i].split(">;")[0].split(`${process.env.API_VERSION}/`)[1];
-                //     }
-                // }
-                let products = [];
-                if(newProducts.length){
-                    console.log("Assembling array of products...")
-                    if(oldProducts){
-                        products = [...oldProducts, ...newProducts];
-                    }else{
-                        products = newProducts;
-                    }   
-                    console.log(`Number of products so far: ${products.length}`);
-                    let nextPageLink = `products.json?limit=250&since_id=${products[products.length-1].id}`;
-                
-                    module.exports.getAllProducts(store, nextPageLink, products).then(resolve);
-
-                }else if(oldProducts){
-                     console.log(`Resolving promise with ${oldProducts.length} products`);
-                    resolve(oldProducts);
-                }else{
-                    console.log(`Resolving promise with ${products.length} products`);
+                if (newProducts.length) {
+                    products = [...products, ...newProducts];
+                    module.exports.getAllProducts(store, products).then(resolve);
+                } else {
+                    console.log(`Resolving getAllProducts for ${store} with ${products.length} total products`);
                     resolve(products);
                 }
-                
             });
        });
     },
-   
      
     getOrderById: function(orderID) {
         console.log(getWebhookData);
