@@ -232,7 +232,7 @@ module.exports = {
                                     inventory_item_id: variant.inventory_item_id,
                                     available_adjustment: -items[variant.sku].quantity
                                 };
-                                console.log(`Adjusting Inventory for Store: ${store}, InventoryItem ID: ${body.inventory_item_id}, SKU: ${variant.sku} by quantity: ${body.available_adjustment}`);
+                                console.log(`Adjusting Inventory for Store: ${store}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id} by quantity: ${body.available_adjustment}`);
                                 module.exports.postRequest(store, "inventory_levels/adjust.json", body).then((response) => {
                                     if (response.errors) {
                                         console.log(`ERRORS: ${response.errors}`);
