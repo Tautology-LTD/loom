@@ -6,20 +6,22 @@ const e = require('express');
 const pgp = require('pg-promise')({
     // Initialization Options
 });
-let ssl = null;
+
+let useSsl = false;
 if (process.env.NODE_ENV === 'development') {
-    ssl = {rejectUnauthorized: false};
- }else{
-    ssl = {rejectUnauthorized: true};
+    connectionString = process.env.HEROKU_POSTGRESQL_IVORY_URL;
+ } else {
+    connectionString = process.env.HEROKU_POSTGRESQL_IVORY_URL;
+    useSsl = true;
  }
-// Preparing the connection details:
-const cn = {
-    connectionString: process.env.DATABASE_URL,
-    ssl: ssl
-};
 
 // Creating a new database instance from the connection details:
-const db = pgp(cn);
+const db = pgp({
+    connectionString: connectionString,
+    ssl: {
+        rejectUnauthorized: useSsl
+    }
+});
 
 // Exporting the database object for shared use:
 module.exports = db;
