@@ -203,6 +203,7 @@ module.exports = {
         return new Promise((resolve, reject)=>{
             let items = module.exports.assembleItems(line_items, `fulfillable_quantity`);
             let skus = Object.keys(items);
+            console.log(`Update Store Inventory By SKUS, Store: ${store}, Total Items: ${items.length}, SKUs: ${skus.join(', ')}`)
             let store_location_id = module.exports.getStoreLocationId(store);
                         
             if (!skus.length) {
@@ -229,8 +230,8 @@ module.exports = {
                                         inventory_item_id: variants[k].inventory_item_id,
                                         available_adjustment: -items[variants[k].sku].quantity
                                     };
-                                    console.log(`Adjusting ${body.inventory_item_id} ${variants[k].sku} by ${body.available_adjustment} at ${store}`);
-                                    module.exports.postRequest(store, "inventory_levels/adjust.json", body).then((response)=>{
+                                    console.log(`Adjusting Inventory for Store: ${store}, InventoryItem ID: ${body.inventory_item_id}, SKU: ${variants[k].sku} by quantity: ${body.available_adjustment}`);
+                                    module.exports.postRequest(store, "inventory_levels/adjust.json", body).then((response) => {
                                         if (response.errors) {
                                             console.log(`ERRORS: ${response.errors}`);
                                         } else {
