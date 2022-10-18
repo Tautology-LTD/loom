@@ -203,7 +203,7 @@ module.exports = {
         return new Promise((resolve, reject)=>{
             let items = module.exports.assembleItems(line_items, `fulfillable_quantity`);
             let skus = Object.keys(items);
-            console.log(`Update Store Inventory By SKUS, Store: ${store}, Total Items: ${items.length}, SKUs: ${skus.join(', ')}`)
+            console.log(`Update Store Inventory By SKUS, Store: ${store}, Total Items: ${Object.keys(items).length}, SKUs: ${skus.join(', ')}`)
             let store_location_id = module.exports.getStoreLocationId(store);
                         
             if (!skus.length) {
@@ -213,38 +213,39 @@ module.exports = {
                 console.log(`No Location Id found for store: ${store}`);
                 resolve(`No Location Id found for store: ${store}`);
             } else {
-                module.exports.getAllProducts(store).then((products)=>{
-                    console.log(`Got ${products.length} products from ${store}`);
-                    let adjustedProductsCount = 0;
-
+                module.exports.getAllProducts(store).then((products) => {
                     if (!products) {
                         console.log(`No products at ${store}`);
                         resolve(`No products at ${store}`);
                     } else {
-                        for(let i in products){
-                            let variants = products[i].variants;
-                            for(let k in variants){
-                                if(skus.includes(variants[k].sku)){
-                                    let body = {
-                                        location_id: store_location_id,
-                                        inventory_item_id: variants[k].inventory_item_id,
-                                        available_adjustment: -items[variants[k].sku].quantity
-                                    };
-                                    console.log(`Adjusting Inventory for Store: ${store}, InventoryItem ID: ${body.inventory_item_id}, SKU: ${variants[k].sku} by quantity: ${body.available_adjustment}`);
-                                    module.exports.postRequest(store, "inventory_levels/adjust.json", body).then((response) => {
-                                        if (response.errors) {
-                                            console.log(`ERRORS: ${response.errors}`);
-                                        } else {
-                                            console.log(`Adjusted ${response}.`);
-                                        }
-                                    }).catch((err)=>{
-                                        console.log(err);
-                                    });
-                                }  
-                            }      
+                        let variants = [];
+                        for (let product of products) {
+                            for (let variant of product.variants) {
+                                variants.push(variant);
+                            }
                         }
-                        console.log(`Finished adjusting ${adjustedProductsCount} products.`);
-                        resolve(`Finished attempting to adjust ${adjustedProductsCount} products.`);
+                        console.log(`Got ${products.length} products, ${variants.length} variants from ${store}`);
+                        for (let variant of variants) {
+                            if (skus.includes(variant.sku)) {
+                                let body = {
+                                    location_id: store_location_id,
+                                    inventory_item_id: variants[k].inventory_item_id,
+                                    available_adjustment: -items[variants[k].sku].quantity
+                                };
+                                console.log(`Adjusting Inventory for Store: ${store}, InventoryItem ID: ${body.inventory_item_id}, SKU: ${variants[k].sku} by quantity: ${body.available_adjustment}`);
+                                module.exports.postRequest(store, "inventory_levels/adjust.json", body).then((response) => {
+                                    if (response.errors) {
+                                        console.log(`ERRORS: ${response.errors}`);
+                                    } else {
+                                        console.log(`Adjusted ${response}.`);
+                                    }
+                                }).catch((err)=>{
+                                    console.log(err);
+                                });
+                            }
+                        }
+                        console.log(`Finished adjusting products for ${store}.`);
+                        resolve(`Finished adjusting products for ${store}.`);
                     }
                 });
             }
