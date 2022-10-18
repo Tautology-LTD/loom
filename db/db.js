@@ -1,4 +1,7 @@
 // Proper way to initialize and share the Database object
+
+const e = require('express');
+
 // Loading and initializing the library:
 const pgp = require('pg-promise')({
     // Initialization Options
@@ -6,6 +9,8 @@ const pgp = require('pg-promise')({
 let ssl = null;
 if (process.env.NODE_ENV === 'development') {
     ssl = {rejectUnauthorized: false};
+ }else{
+    ssl = {rejectUnauthorized: true};
  }
 // Preparing the connection details:
 const cn = {
