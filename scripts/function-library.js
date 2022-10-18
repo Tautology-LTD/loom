@@ -225,14 +225,16 @@ module.exports = {
                             }
                         }
                         console.log(`Got ${products.length} products, ${variants.length} variants from ${store}`);
+                        let iterator = 0;
                         for (let variant of variants) {
+                            iterator++;
                             if (skus.includes(variant.sku)) {
                                 let body = {
                                     location_id: store_location_id,
                                     inventory_item_id: variant.inventory_item_id,
                                     available_adjustment: -items[variant.sku].quantity
                                 };
-                                console.log(`Adjusting Inventory for Store: ${store}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id} by quantity: ${body.available_adjustment}`);
+                                console.log(`Adjusting Inventory for Store: ${store}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, iterator: ${iterator} by quantity: ${body.available_adjustment}`);
                                 module.exports.postRequest(store, "inventory_levels/adjust.json", body).then((response) => {
                                     if (response.errors) {
                                         console.log(`ERRORS: ${response.errors}`);
