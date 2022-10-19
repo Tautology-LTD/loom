@@ -1,7 +1,6 @@
 
 // ./migrations/1-init.js
-const createWebhooksTable = require("./create-main-table")
-const insertWebhookData = require("./insert-webhook-data.js")
+const createWebhooksTable = require("./db/helpers/create-main-table")
+const insertWebhookData = require("./db/helpers/insert-webhook-data.js")
 
-module.exports.generateSql = () => `${createWebhooksTable}
-${insertWebhookData}`
+module.exports.generateSql = () => `${createWebhooksTable}`;

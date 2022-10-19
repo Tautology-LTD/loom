@@ -6,9 +6,9 @@ const updateWebhookData = require("../migrations/helpers/update-webhook-data.js"
 const getWebhookData = require("../migrations/helpers/get-webhook-data.js");
 const getAllWebhookData = require("../migrations/helpers/get-all-webhook-data.js");
 const getLastFiveWebhooks = require("../migrations/helpers/get-last-five-webhooks.js");
+const getLastHundredWebhooks = require('../migrations/helpers/get-last-hundred-webhooks');
 
 const db = require("../db/db");
-const getLastHundredWebhooks = require('../migrations/helpers/get-last-hundred-webhooks');
 console.log(db);
 
 module.exports = {
