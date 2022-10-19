@@ -3,6 +3,23 @@ const getRawBody = require('raw-body');
 
 module.exports = function(app){
 
+    app.get("/connections/all", (req, res)=>{
+        let allPromises = [];
+        let allStores = tools.getStores();
+        for(let i in allStores){
+            allPromises.push(tools.getStoreWebhooks(allStores[i]));
+        }
+        Promise.all(allPromises).then((values)=>{
+            let returnValue = [];
+            for(let i in values){
+                 returnValue.push({ store: allStores[i],
+                                    webhook: JSON.parse(values[i]).webhooks[0] });
+            }
+            res.render("connections.hbs", {webhooks: returnValue});
+        }).catch((error)=>{
+            console.log(error);
+        })
+    });
     app.get("/:masterStore/sync/:storeToUpdate", (req, res)=>{
         res.send("This endpoint is under construction.");
         res.end();
@@ -77,7 +94,7 @@ module.exports = function(app){
     app.get("/:storeName/webhooks", (req, res) =>{
         let storeName = req.params.storeName;
 
-        tools.getRequest(storeName, "webhooks.json").then((response)=>{
+        tools.getStoreWebhooks(storeName).then((response)=>{
             res.send(response);
         }).catch((err)=>{
             console.log(err);

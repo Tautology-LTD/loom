@@ -1,0 +1,78 @@
+ <script>
+    function submitSync(e) {
+
+        e.preventDefault();
+
+        let masterStore = e.target.form.group1.value;
+        console.log(masterStore);
+
+        let storeToUpdate = e.target.form.group2.value === "all" ? "" : e.target.form.group2.value  == masterStore ? "" : e.target.form.group2.value;
+        console.log(storeToUpdate);
+
+            let destination = `/${masterStore}/sync/${storeToUpdate}`;
+            console.log(destination);
+            let syncLink = document.getElementById("destination");
+            syncLink.innerHTML = destination;
+            syncLink.href = destination;
+
+       // window.location.href = "";
+}
+
+ 
+
+ 
+</script>
+ 
+ 
+  <h1>Welcome to the homepage</h1>
+
+        <ul>
+            {{#storeLinks}}
+                <li>
+                    <a href="{{this}}/webhooks">View {{this}}'s webhooks</a>
+                </li>
+            {{/storeLinks}}
+            <li>
+                <a href="/connections/all" >View all webhooks</a>
+            </li>
+            <li>
+                <a href="/db/webhooks">View data from webhooks table</a>
+            </li>
+            
+        </ul>
+      <div>
+            <h1>Latest webhooks</h1>
+            {{>webhooksList}}
+        </div>
+
+
+<form>
+    <p>Master Store:</p>
+    <fieldset id="group1">
+        {{#storeLinks}}
+            <li>
+                <input type="radio" name="group1"  value="{{this}}"  {{#if @first}} checked="checked" {{/if}}>{{capitalize this}}</input>
+            </li>
+        {{/storeLinks}}
+    </fieldset>
+    
+    <p>Store to update:</p>
+    <fieldset id="group2">
+        <li>
+            <input type="radio" name="group2"  value="all" checked="checked">All</input>
+        </li>
+        {{#storeLinks}}
+            <li>
+                <input type="radio" name="group2"  value="{{this}}" >{{capitalize this}}</input>
+            </li>
+        {{/storeLinks}}
+    </fieldset>
+    <div>
+        <p>Click this link to sync...</p>
+        <a id="destination" href="">?/sync/?</a>
+
+    </div>
+    <input onclick="submitSync(event)" type="submit" value="Submit"></p>
+</form>
+
+        

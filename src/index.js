@@ -4,18 +4,39 @@ const querystring = require('querystring');
 
 const cookie = require('cookie');
 const express = require('express');
-require('dotenv').config()
+const path = require('path');
+const exphbs = require('express-handlebars');
+require('dotenv').config();
 
 const tools = require("../scripts/function-library");
+const helpers = require("../scripts/hbs-helpers");
+const app = express();
 
- const app = express();
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, '../views'));
+
+app.engine('hbs', exphbs.engine({
+    partialsDir: "./views/partials",
+    layoutsDir: "./views/layouts",
+    defaultLayout: 'index',
+    extname: '.hbs',
+    helpers: helpers
+}));
+
+ 
 require("../routes/dbRoutes")(app);
 
 require("../routes/shopifyRoutes")(app);
-//api routes
+
+ //api routes
 app.get("/", (req, res) => {
-    res.send("Welcome to homepage.");
+    tools.getDashboardData().then((data)=>{
+        console.log(data);
+        res.render("home.hbs", data);
+    });
+    // res.sendFile(path.resolve('./views/index.html'));
 });
+
 
 app.get('/shopify-api', (req, res) => {
     // Shop Name
@@ -99,5 +120,6 @@ app.get('/shopify-api/callback', (req, res) => {
         res.status(400).send('Required parameters missing');
     }
 });
+
 
 app.listen(process.env.PORT, () => console.log(`Application listening on port ${process.env.PORT}!`));
