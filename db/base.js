@@ -14,6 +14,12 @@ module.exports = function(mx) {
         }
         return mx.connection.none(`DROP TABLE IF EXISTS ${mx.tableName}; CREATE TABLE ${mx.tableName} (${tableStructurePairs.join(', ')})`);
     };
+    mx.findBy = function(query) {
+        let where_statement = query.map(function(value, field) {
+            return field + ' ' + value;
+        }).join(', ');
+        mx.connection.oneOrNone(`SELECT * FROM ${mx.tableName} WHERE ${where_statement}`);
+    };
     mx.where = function(query) {
         let where_statement = query.map(function(value, field) {
             return field + ' ' + value

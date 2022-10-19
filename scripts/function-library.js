@@ -3,11 +3,6 @@ const { func } = require('../db/connection');
 
 const webhookQueryHelper = require("../db/webhooks.js")
 
-const getWebhookData = require("../db/queries/webhooks/get-webhook-data.js");
-const getAllWebhookData = require("../db/queries/webhooks/get-all-webhook-data.js");
-const getLastFiveWebhooks = require("../db/queries/webhooks/get-last-five-webhooks.js");
-const getLastHundredWebhooks = require('../db/queries/webhooks/get-last-hundred-webhooks');
-
 const db = require("../db/connection.js");
 console.log(db);
 
@@ -299,26 +294,5 @@ module.exports = {
                 reject(errors);
             })
         });
-    },
-     
-    getOrderById: function(orderID) {
-        console.log(getWebhookData);
-        return db.oneOrNone(getWebhookData, [orderID]);
-      
-    },
-    getWebhooksData: function(){
-        console.log(getAllWebhookData);
-        return db.manyOrNone(getAllWebhookData);
-    },
-   getFiveRecentWebhooks: function(){
-    console.log(getLastFiveWebhooks);
-        return db.manyOrNone(getLastFiveWebhooks);
-          
-   },
-   getHundredRecentWebhooks: function(){
-    console.log(getLastHundredWebhooks);
-        return db.manyOrNone(getLastHundredWebhooks);
-   }
-  
-
-}
+    }
+};

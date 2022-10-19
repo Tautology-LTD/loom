@@ -1,4 +1,5 @@
 const tools = require("../scripts/function-library");
+const webhookQueryHelper  = require("../db/webhooks");
  
 module.exports = function(app){
    
@@ -23,7 +24,7 @@ module.exports = function(app){
         // });;
     });
     app.get("/db/webhooks", (req, res)=>[
-        tools.getWebhooksData().then((data)=>{
+        webhookQueryHelper.all().then((data)=>{
             res.render("webhooks.hbs", {webhooks: data});
         }).catch((err)=>{
             console.log(err);

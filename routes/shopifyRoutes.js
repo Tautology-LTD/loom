@@ -61,7 +61,7 @@ module.exports = function(app){
             let order = JSON.parse(data.toString('utf8'));
             
             console.log(`Received order/create webhook for ${storeName}, order number ${order.id} updating ${storesToUpdate.join(', ')}`);
-            tools.getOrderById(order.id).then((data)=>{
+            webhookQueryHelper.findBy({order_id: order.id}).then((data)=>{
                 if (!data) {
                     webhookQueryHelper.insert(order.id, 'order/create', order).then((response)=>{
                         console.log(response);
