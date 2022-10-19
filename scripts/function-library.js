@@ -1,15 +1,14 @@
 const request = require('request-promise');
-const { func } = require('../db/db');
-const createWebhooksTable = require("../db/webhooks/create-webhooks-table.js");
+const { func } = require('../db/connection');
 
-const insertWebhookData = require("../db/webhooks/helpers/insert-webhook-data.js");
-const updateWebhookData = require("../db/webhooks/helpers/update-webhook-data.js");
-const getWebhookData = require("../db/webhooks/helpers/get-webhook-data.js");
-const getAllWebhookData = require("../db/webhooks/helpers/helpers/get-all-webhook-data.js");
-const getLastFiveWebhooks = require("../db/webhooks/helpers/get-last-five-webhooks.js");
-const getLastHundredWebhooks = require('../db/webhooks/helpers/get-last-hundred-webhooks');
+const webhookQueryHelper = require("../db/webhooks.js")
 
-const db = require("../db/db");
+const getWebhookData = require("../db/queries/webhooks/get-webhook-data.js");
+const getAllWebhookData = require("../db/queries/webhooks/get-all-webhook-data.js");
+const getLastFiveWebhooks = require("../db/queries/webhooks/get-last-five-webhooks.js");
+const getLastHundredWebhooks = require('../db/queries/webhooks/get-last-hundred-webhooks');
+
+const db = require("../db/connection.js");
 console.log(db);
 
 module.exports = {
@@ -286,7 +285,7 @@ module.exports = {
     getDashboardData: function(){
         return new Promise((resolve, reject)=>{
             let allPromises = [];
-            allPromises.push(module.exports.getFiveRecentWebhooks());
+            allPromises.push(webhookQueryHelper.limit(5));
             allPromises.push(module.exports.getStores());
 
             Promise.all(allPromises).then((values)=>{
@@ -311,22 +310,6 @@ module.exports = {
         console.log(getAllWebhookData);
         return db.manyOrNone(getAllWebhookData);
     },
-
-    setWebhookExecutedAtByOrderId: function(orderId){
-        console.log(updateWebhookData);
-        return db.none(updateWebhookData, [Date.now(), orderId]);    
-
-   },
-   insertOrder: function(orderData){
-        console.log(insertWebhookData);
-        return db.none(insertWebhookData, [orderData.id, `order/create`, Date.now(), orderData]);    
-   },
-  
-   createWebhookTable: function(){
-        console.log(createWebhooksTable);
-        return db.none(createWebhooksTable);
-       
-   },
    getFiveRecentWebhooks: function(){
     console.log(getLastFiveWebhooks);
         return db.manyOrNone(getLastFiveWebhooks);

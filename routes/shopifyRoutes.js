@@ -1,4 +1,5 @@
 const tools = require("../scripts/function-library");
+const webhookQueryHelper = require("../db/webhooks.js");
 const getRawBody = require('raw-body');
 
 module.exports = function(app){
@@ -62,7 +63,7 @@ module.exports = function(app){
             console.log(`Received order/create webhook for ${storeName}, order number ${order.id} updating ${storesToUpdate.join(', ')}`);
             tools.getOrderById(order.id).then((data)=>{
                 if (!data) {
-                    tools.insertOrder(order).then((response)=>{
+                    webhookQueryHelper.insert(order.id, 'order/create', order).then((response)=>{
                         console.log(response);
                     });
 
