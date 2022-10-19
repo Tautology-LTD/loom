@@ -1,12 +1,13 @@
 const request = require('request-promise');
 const { func } = require('../db/db');
-const insertWebhookData = require("../db/queries/webhooks/insert-webhook-data.js");
-const createWebhooksTable = require("../db/queries/webhooks/create-webhooks-table.js");
-const updateWebhookData = require("../db/queries/webhooks/update-webhook-data.js");
-const getWebhookData = require("../db/queries/webhooks/get-webhook-data.js");
-const getAllWebhookData = require("../db/queries/webhooks/get-all-webhook-data.js");
-const getLastFiveWebhooks = require("../db/queries/webhooks/get-last-five-webhooks.js");
-const getLastHundredWebhooks = require('../db/queries/webhooks/get-last-hundred-webhooks');
+const createWebhooksTable = require("../db/webhooks/create-webhooks-table.js");
+
+const insertWebhookData = require("../db/webhooks/helpers/insert-webhook-data.js");
+const updateWebhookData = require("../db/webhooks/helpers/update-webhook-data.js");
+const getWebhookData = require("../db/webhooks/helpers/get-webhook-data.js");
+const getAllWebhookData = require("../db/webhooks/helpers/helpers/get-all-webhook-data.js");
+const getLastFiveWebhooks = require("../db/webhooks/helpers/get-last-five-webhooks.js");
+const getLastHundredWebhooks = require('../db/webhooks/helpers/get-last-hundred-webhooks');
 
 const db = require("../db/db");
 console.log(db);
@@ -180,7 +181,7 @@ module.exports = {
                                                 available: masterItems[variant.sku].inventory_quantity
                                             };
                                             console.log(`Setting Inventory for Store: ${storeToUpdate}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, by quantity: ${body.available}`);
-                                            allPromises.push(module.exports.postRequest(storeToUpdate, "inventory_levels/set.json", body));
+                                            allPromises.push(module.exports.postRequest(storeToUpdate, "inventory_levels/adjust.json", body));
                                                
                                         }
                                 }
@@ -335,76 +336,6 @@ module.exports = {
     console.log(getLastHundredWebhooks);
         return db.manyOrNone(getLastHundredWebhooks);
    }
-     
-    // updateStoreSkuInventory: function (store, sku, adjustment){
-    //     console.log(sku);`
-    //     module.exports.getInventoryItemIdBySku(store, sku, function(invetoryItemId){
-    //         console.log(invetoryItemId);
-            
-    //     });
-
-    // },
-
-    // paginateProducts: function (store, link, sku, callback){
-    //     console.log("Paginating products.");
-    //     console.log(link);
-    //     if(!link){
-    //         link = "products.json?limit=250&since_id=0"
-    //     }        
-
-    //     module.exports.getRequest(store, link, function(res){
-            
-    //         console.log("RES:");    
-    //         // let headers = res.getHeaders();
-
-    //         let data = JSON.parse(res);
-            
-    //         // let nextPageInfo = headers.link.split(",");
-    //         // for(let i in nextPageInfo){
-    //         //     if(nextPageInfo[i].includes("next")){
-    //         //         nextPageLink = nextPageInfo[i].split(">;")[0].split(`${process.env.API_VERSION}/`)[1];
-    //         //     }
-    //         // }
-    //         let products = data.products; //paginate products
-    //         let nextPageLink = "";
-    //         if(products.length){
-    //             nextPageLink = `products.json?limit=250&since_id=${products[products.length-1].id}`;
-    //         }
-
-    //         console.log(products.length);
-    //         console.log(store);
-    //         console.log(nextPageLink);
-    //         let invetoryItemId;
-    //         for(let i in products){
-    //             let variants = products[i].variants;
-    //             for(let k in variants){
-    //                 if(variants[k].sku === sku){
-    //                     invetoryItemId = variants[k].inventory_item_id;
-    //                 }
-    //             }
-    //         }
-    //         if(invetoryItemId){
-    //             console.log(`No Inventory Item Id found for ${sku} in ${store}`);
-    //             console.log(invetoryItemId);
-    //             callback(invetoryItemId);
-
-    //         }else{
-    //             if(nextPageLink){
-    //                 console.log("Calling next link.");
-    //                 module.exports.paginateProducts(store, nextPageLink, sku, callback);
-    //             }else{
-    //                 console.log(`No Inventory Item Id found for ${sku} in ${store}`);
-
-    //             }
-    //         }
-    //     });
-
-    // },
-   
-
-    // getInventoryItemIdBySku: function (store, sku, callback){
-    //     console.log("getting Inventory Item Id");
-    //     module.exports.paginateProducts(store, "products.json?limit=250", sku, callback);
-    // }
+  
 
 }
