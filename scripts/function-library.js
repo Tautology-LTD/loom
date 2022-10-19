@@ -1,12 +1,12 @@
 const request = require('request-promise');
 const { func } = require('../db/db');
-const insertWebhookData = require("../migrations/helpers/insert-webhook-data.js");
-const createWebhooksTable = require("../migrations/helpers/create-webhooks-table.js");
-const updateWebhookData = require("../migrations/helpers/update-webhook-data.js");
-const getWebhookData = require("../migrations/helpers/get-webhook-data.js");
-const getAllWebhookData = require("../migrations/helpers/get-all-webhook-data.js");
-const getLastFiveWebhooks = require("../migrations/helpers/get-last-five-webhooks.js");
-const getLastHundredWebhooks = require('../migrations/helpers/get-last-hundred-webhooks');
+const insertWebhookData = require("../db/queries/webhooks/insert-webhook-data.js");
+const createWebhooksTable = require("../db/queries/webhooks/create-webhooks-table.js");
+const updateWebhookData = require("../db/queries/webhooks/update-webhook-data.js");
+const getWebhookData = require("../db/queries/webhooks/get-webhook-data.js");
+const getAllWebhookData = require("../db/queries/webhooks/get-all-webhook-data.js");
+const getLastFiveWebhooks = require("../db/queries/webhooks/get-last-five-webhooks.js");
+const getLastHundredWebhooks = require('../db/queries/webhooks/get-last-hundred-webhooks');
 
 const db = require("../db/db");
 console.log(db);
@@ -167,10 +167,10 @@ module.exports = {
                              
                                 variants = Object.values(variants); // de-duplicate the variants
                                 console.log(`Now we have ${storeToUpdateProducts.length} products, ${variants.length} variants from ${storeToUpdate}`);
-                                let iterator = 0;
+
                                 for (let variant of variants) {
-                                        iterator++;
-                                        if (masterSKUs.includes(variant.sku) && masterItems[variant.sku].inventory_quantity !== variant.quantity) {
+
+                                    if (masterSKUs.includes(variant.sku) && masterItems[variant.sku].inventory_quantity !== variant.quantity) {
                                      // if(typeof variants[k].sku != null && masterSkus.includes(variants[k].sku) && variants[k].sku.includes("TEST_SKU")
                                      // &&  masterItems[variants[k].sku].quantity != variants[k].inventory_quantity ){
                                           
@@ -179,8 +179,8 @@ module.exports = {
                                                 inventory_item_id: variant.inventory_item_id,
                                                 available: masterItems[variant.sku].inventory_quantity
                                             };
-                                            console.log(`Setting Inventory for Store: ${storeToUpdate}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, iterator: ${iterator} by quantity: ${body.available}`);
-                                            allPromises.push(module.exports.postRequest(storeToUpdate, "inventory_levels/adjust.json", body));
+                                            console.log(`Setting Inventory for Store: ${storeToUpdate}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, by quantity: ${body.available}`);
+                                            allPromises.push(module.exports.postRequest(storeToUpdate, "inventory_levels/set.json", body));
                                                
                                         }
                                 }
@@ -235,16 +235,14 @@ module.exports = {
                         console.log(`De-duplicating the variants from ${store}`);
                         variants = Object.values(variants); // de-duplicate the variants
                         console.log(`Now we have ${products.length} products, ${variants.length} variants from ${store}`);
-                        let iterator = 0;
-                        for (let variant of variants) {
-                            iterator++;
-                            if (skus.includes(variant.sku)) {
+                         for (let variant of variants) {
+                             if (skus.includes(variant.sku)) {
                                 let body = {
                                     location_id: store_location_id,
                                     inventory_item_id: variant.inventory_item_id,
                                     available_adjustment: -items[variant.sku].quantity
                                 };
-                                console.log(`Adjusting Inventory for Store: ${store}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, iterator: ${iterator} by quantity: ${body.available_adjustment}`);
+                                console.log(`Adjusting Inventory for Store: ${store}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, by quantity: ${body.available_adjustment}`);
                                 allPromises.push(module.exports.postRequest(store, "inventory_levels/adjust.json", body));
                             }
                         }
