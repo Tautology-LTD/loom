@@ -3,7 +3,6 @@ const webhookQueryHelper = require("../db/webhooks.js");
 const getRawBody = require('raw-body');
 
 module.exports = function(app){
-
     app.get("/connections/all", (req, res)=>{
         let allPromises = [];
         let allStores = tools.getStores();

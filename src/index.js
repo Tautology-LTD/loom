@@ -24,9 +24,9 @@ app.engine('hbs', exphbs.engine({
 }));
 
  
-require("../routes/dbRoutes")(app);
-require("../routes/connectionRoutes")(app);
-require("../routes/shopifyRoutes")(app);
+require("../routes/db")(app);
+require("../routes/connection")(app);
+require("../routes/shopify")(app);
 
  //api routes
 app.get("/", (req, res) => {
