@@ -41,9 +41,28 @@ module.exports = function(app){
         if (!validStore(masterStore) || !validStore(storeToUpdate) ){
             res.sendStatus(422);
         }
+
         // inventoryHelper.updateStoreLevelByMaster(storeToUpdate, masterStore).then((response)=>{
         //     console.log(response);
         // });
+
+        // get all the products from the master store
+        // get all the products from the slave store
+        // loop through slave products
+            // if slave products appears in master store
+                // push the slave product and the master products into an array of updates
+                // updates = [function() {
+                    // inventoryHelper.setInventoryForSku(store, sku, inventory);
+                // }}]
+
+        // establish a timeout variable at 0
+        // loop through the closures assigning each to run after the timeout
+        // delay(3000).then(() => alert('runs after 3 seconds'));
+        // push the resulting promise in to an array of promises
+        // increment time timeout by 250
+
+        // wait for all the promises to resolve
+
         res.redirect(`/sync/${masterStore}/to/${storeToUpdate}/done`);
     });
 
