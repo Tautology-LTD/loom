@@ -125,78 +125,79 @@ module.exports = {
     },
 
     updateStoreLevelByMaster: function (storeToUpdate, masterStore){
-        return new Promise((resolve, reject)=>{
-            console.log(`Syncing ${storeToUpdate}'s levels to the leveld of ${masterStore}`);
-            let store_location_id = module.exports.getStoreLocationId(storeToUpdate);
+        console.log(storeToUpdate, masterStore);
+        // return new Promise((resolve, reject)=>{
+        //     console.log(`Syncing ${storeToUpdate}'s levels to the leveld of ${masterStore}`);
+        //     let store_location_id = module.exports.getStoreLocationId(storeToUpdate);
 
-            if (!store_location_id) {         
-                console.log(`No Location Id found for store: ${store}`);
-                resolve(`No Location Id found for store: ${store}`);                  
-            } else {
+        //     if (!store_location_id) {         
+        //         console.log(`No Location Id found for store: ${store}`);
+        //         resolve(`No Location Id found for store: ${store}`);                  
+        //     } else {
             
-                module.exports.getAllProducts(masterStore).then((masterStoreProducts)=>{
+        //         module.exports.getAllProducts(masterStore).then((masterStoreProducts)=>{
     
-                    if (!masterStoreProducts.length) {
-                        console.log(`No products at ${masterStoreProducts}`);
-                        resolve(`No products at ${masterStoreProducts}`);
-                    } else {
+        //             if (!masterStoreProducts.length) {
+        //                 console.log(`No products at ${masterStoreProducts}`);
+        //                 resolve(`No products at ${masterStoreProducts}`);
+        //             } else {
 
-                        let masterItems = module.exports.assembleItems(masterStoreProducts, `inventory_quantity`);
-                        let masterSKUs = Object.keys(masterItems);
+        //                 let masterItems = module.exports.assembleItems(masterStoreProducts, `inventory_quantity`);
+        //                 let masterSKUs = Object.keys(masterItems);
 
-                        module.exports.getAllProducts(storeToUpdate).then((storeToUpdateProducts)=>{
+        //                 module.exports.getAllProducts(storeToUpdate).then((storeToUpdateProducts)=>{
                             
-                            console.log(`Got ${storeToUpdateProducts.length} products from ${storeToUpdate}`);
-                            if (!storeToUpdateProducts.length) {
-                                console.log(`No products at ${storeToUpdate}`);
-                                resolve(`No products at ${storeToUpdate}`);
-                            } else {
-                                let allPromises = [];
+        //                     console.log(`Got ${storeToUpdateProducts.length} products from ${storeToUpdate}`);
+        //                     if (!storeToUpdateProducts.length) {
+        //                         console.log(`No products at ${storeToUpdate}`);
+        //                         resolve(`No products at ${storeToUpdate}`);
+        //                     } else {
+        //                         let allPromises = [];
 
-                                let variants = {};
-                                for (let product of storeToUpdateProducts) {
-                                        for (let variant of product.variants) {
-                                            variants[variant.id] = variant;
-                                        }
-                                }
+        //                         let variants = {};
+        //                         for (let product of storeToUpdateProducts) {
+        //                                 for (let variant of product.variants) {
+        //                                     variants[variant.id] = variant;
+        //                                 }
+        //                         }
                              
-                                variants = Object.values(variants); // de-duplicate the variants
-                                console.log(`Now we have ${storeToUpdateProducts.length} products, ${variants.length} variants from ${storeToUpdate}`);
+        //                         variants = Object.values(variants); // de-duplicate the variants
+        //                         console.log(`Now we have ${storeToUpdateProducts.length} products, ${variants.length} variants from ${storeToUpdate}`);
 
-                                for (let variant of variants) {
+        //                         for (let variant of variants) {
 
-                                    if (masterSKUs.includes(variant.sku) && masterItems[variant.sku].inventory_quantity !== variant.quantity) {
-                                     // if(typeof variants[k].sku != null && masterSkus.includes(variants[k].sku) && variants[k].sku.includes("TEST_SKU")
-                                     // &&  masterItems[variants[k].sku].quantity != variants[k].inventory_quantity ){
+        //                             if (masterSKUs.includes(variant.sku) && masterItems[variant.sku].inventory_quantity !== variant.quantity) {
+        //                              // if(typeof variants[k].sku != null && masterSkus.includes(variants[k].sku) && variants[k].sku.includes("TEST_SKU")
+        //                              // &&  masterItems[variants[k].sku].quantity != variants[k].inventory_quantity ){
                                           
-                                            let body = {
-                                                location_id: store_location_id,
-                                                inventory_item_id: variant.inventory_item_id,
-                                                available: masterItems[variant.sku].inventory_quantity
-                                            };
-                                            console.log(`Setting Inventory for Store: ${storeToUpdate}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, by quantity: ${body.available}`);
-                                            allPromises.push(module.exports.postRequest(storeToUpdate, "inventory_levels/adjust.json", body));
+        //                                     let body = {
+        //                                         location_id: store_location_id,
+        //                                         inventory_item_id: variant.inventory_item_id,
+        //                                         available: masterItems[variant.sku].inventory_quantity
+        //                                     };
+        //                                     console.log(`Setting Inventory for Store: ${storeToUpdate}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, by quantity: ${body.available}`);
+        //                                     allPromises.push(module.exports.postRequest(storeToUpdate, "inventory_levels/adjust.json", body));
                                                
-                                        }
-                                }
-                                Promise.all(allPromises).then((values)=>{
-                                        values.forEach((item)=>{
-                                            console.log(`Set ${item}.`);
-                                        })
-                                        resolve(`Set ${values.length} products at ${storeToUpdate}`);
-                                }).catch((error)=>{
-                                        console.log(error.error);
-                                        reject(error);
-                                });
-                            }
+        //                                 }
+        //                         }
+        //                         Promise.all(allPromises).then((values)=>{
+        //                                 values.forEach((item)=>{
+        //                                     console.log(`Set ${item}.`);
+        //                                 })
+        //                                 resolve(`Set ${values.length} products at ${storeToUpdate}`);
+        //                         }).catch((error)=>{
+        //                                 console.log(error.error);
+        //                                 reject(error);
+        //                         });
+        //                     }
                              
-                        });
+        //                 });
 
-                    }
-                });
-            }
+        //             }
+        //         });
+        //     }
         
-        });
+        // });
 
     },
 

@@ -27,6 +27,8 @@ app.engine('hbs', exphbs.engine({
 require("../routes/db")(app);
 require("../routes/connection")(app);
 require("../routes/shopify")(app);
+require("../routes/sync")(app);
+
 app.use(express.static(path.resolve('./public')));
 
  //api routes
@@ -34,6 +36,8 @@ app.get("/", (req, res) => {
     tools.getDashboardData().then((data)=>{
         console.log(data);
         res.render("home.hbs", data);
+    }).catch((err)=>{
+        console.log(err);
     });
 });
 
