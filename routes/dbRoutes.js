@@ -29,8 +29,14 @@ module.exports = function(app){
         }).catch((err)=>{
             console.log(err);
             res.send(err);
-
         })
     ]);
-
+    app.get("/db/webhooks/:id", (req, res)=>[
+        webhookQueryHelper.find(req.params.id).then((data)=>{
+            res.render("webhooks.hbs", {webhooks: data});
+        }).catch((err)=>{
+            console.log(err);
+            res.send(err);
+        })
+    ]);
 }
