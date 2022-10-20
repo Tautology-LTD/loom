@@ -1,1 +1,0 @@
-module.exports = `SELECT * FROM webhooks`;
