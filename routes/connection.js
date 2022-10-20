@@ -24,7 +24,7 @@ module.exports = function(app){
     });
 
 
-    app.get("/connnections/:storeName", (req, res) =>{
+    app.get("/connections/:storeName", (req, res) =>{
         let storeName = req.params.storeName;
 
         tools.getStoreWebhooks(storeName).then((response)=>{
