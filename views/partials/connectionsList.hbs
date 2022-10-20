@@ -1,15 +1,14 @@
 <script>
-    function deleteWebhook(event){
+    function deleteWebhook(event) {
         let store = event.target.dataset.store;
         let id = event.target.id;
 
-        console.log(store, id);
-        window.location.href = `${store}/webhooks/${id}/delete`;
+        window.location.href = `connection/${store}/${id}/delete`;
     }
-    function createWebhook(event){
+    function createWebhook(event) {
         let store = event.target.dataset.store;
-        window.location.href = `${store}/webhooks/create`;
 
+        window.location.href = `connection/${store}/create`;
     }
     function toggleCollapse(event){
         event.target.classList.toggle("active");
@@ -24,50 +23,49 @@
 
 <style>
     /* Style the button that is used to open and close the collapsible content */
-.collapsible {
-  background-color: #eee;
-  color: #444;
-  cursor: pointer;
-  padding: 18px;
-  width: 100%;
-  border: none;
-  text-align: left;
-  outline: none;
-  font-size: 15px;
-}
+    .collapsible {
+      background-color: #eee;
+      color: #444;
+      cursor: pointer;
+      padding: 18px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 15px;
+    }
 
-/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
-.active, .collapsible:hover {
-  background-color: #ccc;
-}
+    /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+    .active, .collapsible:hover {
+      background-color: #ccc;
+    }
 
-/* Style the collapsible content. Note: hidden by default */
-.content {
-  padding: 0 18px;
-  display: none;
-  overflow: hidden;
-  background-color: #f1f1f1;
-}
+    /* Style the collapsible content. Note: hidden by default */
+    .content {
+      padding: 0 18px;
+      display: none;
+      overflow: hidden;
+      background-color: #f1f1f1;
+    }
 </style>
   
-<ol id="webhooks">
+<ul id="webhooks">
     {{#webhooks}}
-     <li>
-        {{#each this}}
-       <ul>
-            {{#unless @last}}
-            <li>{{@key}}: {{this}}</li>
-            {{else}}
-            <button data-store="{{store}}" id="{{webhook.id}}" onclick="deleteWebhook(event)">DELETE</button>
-            <button  data-store="{{store}}" onclick="createWebhook(event)">CREATE</button></li>
+        <li>
+            <h3>Store: {{ this.store }}</h3>
 
-            <button onclick="toggleCollapse(event)" type="button" class="collapsible">Open {{@key}}</button>
+            <button data-store="{{ this.store }}" id="{{this.webhook.id}}" onclick="deleteWebhook(event)">
+                DELETE
+            </button>
+            <button data-store="{{ this.store }}" onclick="createWebhook(event)">
+                CREATE
+            </button>
+            <button onclick="toggleCollapse(event)" type="button" class="collapsible">
+                Show Connection Details
+            </button>
             <div class="content">
-            <p>{{json this}}</p>
+                <p>{{json this.webhook}}</p>
             </div>
-            {{/unless}}
-        </ul>
-        {{/each}}
         </li>
     {{/webhooks}}
 </ol>

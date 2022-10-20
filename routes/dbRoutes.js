@@ -4,14 +4,9 @@ const webhookQueryHelper  = require("../db/webhooks");
 module.exports = function(app){
    
     app.get("/db/test", (req, res)=>{
-        console.log("TESTING");
-        // let insertReturn = tools.insertOrder({id: 80});
-        // insertReturn.then((data)=>{
-            // console.log(data);
-            // tools.updateOrderById(80);
-            // res.send("Inserted order.");
-        // })
-         
+        webhookQueryHelper.insert(0, 'order/test', {}).then((data)=>{
+            res.send(data);
+        })
     });
 
     app.get("/db/create", (req, res)=>{

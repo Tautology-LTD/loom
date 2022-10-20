@@ -4,23 +4,6 @@ const getRawBody = require('raw-body');
 
 module.exports = function(app){
 
-    app.get("/connections/all", (req, res)=>{
-        let allPromises = [];
-        let allStores = tools.getStores();
-        for(let i in allStores){
-            allPromises.push(tools.getStoreWebhooks(allStores[i]));
-        }
-        Promise.all(allPromises).then((values)=>{
-            let returnValue = [];
-            for(let i in values){
-                 returnValue.push({ store: allStores[i],
-                                    webhook: JSON.parse(values[i]).webhooks[0] });
-            }
-            res.render("connections.hbs", {webhooks: returnValue});
-        }).catch((error)=>{
-            console.log(error);
-        })
-    });
     app.get("/:masterStore/sync/:storeToUpdate", (req, res)=>{
         res.send("This endpoint is under construction.");
         res.end();
@@ -92,54 +75,6 @@ module.exports = function(app){
     
     });
 
-    app.get("/:storeName/webhooks", (req, res) =>{
-        let storeName = req.params.storeName;
-
-        tools.getStoreWebhooks(storeName).then((response)=>{
-            res.send(response);
-        }).catch((err)=>{
-            console.log(err);
-            res.send(err);
-        });
-    });
-
-    app.get("/:storeName/webhooks/create", (req, res) =>{
-        let storeName = req.params.storeName;
-        let address = `https://${req.get('host')}/${storeName}/orders`;
-        let topic = "orders/create";
-        let format = "json";
-        
-        let webhook = {
-            topic,
-            address,
-            format
-        }
-        console.log(webhook);
-        tools.postRequest(storeName, "webhooks.json", { webhook })
-        .then((response)=>{
-            res.send(response);
-        })
-        .catch((err)=>{
-            console.log(err);
-            res.send(err);
-        });    
-        
-    });
-    app.get("/:storeName/webhooks/delete/:webhookId", function (req, res){
-        let storeName = req.params.storeName;
-        let webhookId = req. params.webhookId;
-
-        tools.delRequest(storeName, `webhooks/${webhookId}.json`)
-        .then((response)=>{
-            console.log(response);
-            res.send(`Deleted Webhook ID ${webhookId}`);
-        })
-        .catch((err)=>{
-            console.log(err.message);
-            res.send(err.message);
-        })
-    });
-
     app.get("/:storeName/products/update/:sku/:quantity", (req, res) => {
         let storeName = req.params.storeName;
         let productSKU = req.params.sku;
@@ -147,7 +82,7 @@ module.exports = function(app){
 
         let storesToUpdate = tools.getStores().filter(item => item !== storeName);
         let items = [];
-             let item = {};
+            let item = {};
             item[productSKU] = { quantity:quantityAdjustment};
             items.push(item);
             

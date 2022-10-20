@@ -28,7 +28,7 @@ require("../routes/dbRoutes")(app);
 
 require("../routes/shopifyRoutes")(app);
 
- //api routes
+//api routes
 app.get("/", (req, res) => {
     tools.getDashboardData().then((data)=>{
         console.log(data);
