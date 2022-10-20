@@ -1,21 +1,20 @@
 {{header}} 
-    {{#switch step}} 
-            {{#case 1}}
-                {{#stores}}
-                    <a href="/sync/{{this}}">{{this}}</a>
-                {{/stores}}
-            {{/case}} 
+{{#switch step}} 
+        {{#case 1}}
+            {{#stores}}
+                <a href="/sync/{{this}}">{{this}}</a>
+            {{/stores}}
+        {{/case}} 
 
-            {{#case 2}}
-                {{#stores}}
-                    <a href="/sync/{{../masterStore}}/to/{{this}}">{{this}}</a>
-                {{/stores}}
-            {{/case}}
-            {{#case 3}}
-                <form action="/sync/{{masterStore}}/to/{{storeToUpdate}}" method="POST">
-                    <input type="submit" value="YES"></input>
-                    <a href="/">NO</a>
-               </form>
-            {{/case}} 
-    {{/switch}}
-
+        {{#case 2}}
+            {{#stores}}
+                <a href="/sync/{{../masterStore}}/to/{{this}}">{{this}}</a>
+            {{/stores}}
+        {{/case}}
+        {{#case 3}}
+            <form action="/sync/{{masterStore}}/to/{{storeToUpdate}}" method="POST">
+                <input type="submit" value="YES"></input>
+                <a href="/">NO</a>
+           </form>
+        {{/case}} 
+{{/switch}}
