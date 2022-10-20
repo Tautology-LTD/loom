@@ -27,6 +27,7 @@ app.engine('hbs', exphbs.engine({
 require("../routes/db")(app);
 require("../routes/connection")(app);
 require("../routes/shopify")(app);
+app.use(express.static(path.resolve('./public')));
 
  //api routes
 app.get("/", (req, res) => {
@@ -34,7 +35,6 @@ app.get("/", (req, res) => {
         console.log(data);
         res.render("home.hbs", data);
     });
-    // res.sendFile(path.resolve('./views/index.html'));
 });
 
 

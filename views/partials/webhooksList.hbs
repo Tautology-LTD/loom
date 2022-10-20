@@ -10,34 +10,6 @@
   }
 </script>
 
-<style>
-  /* Style the button that is used to open and close the collapsible content */
-  .collapsible-trigger {
-    background-color: #eee;
-    color: #444;
-    cursor: pointer;
-    padding: 18px;
-    width: 100%;
-    border: none;
-    text-align: left;
-    outline: none;
-    font-size: 15px;
-  }
-
-  /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
-  .active, .collapsible-trigger:hover {
-    background-color: #ccc;
-  }
-
-  /* Style the collapsible content. Note: hidden by default */
-  .collapsible-content {
-    padding: 0 18px;
-    display: none;
-    overflow: hidden;
-    background-color: #f1f1f1;
-  }
-</style>
-
 <ol id="webhooks">
   {{#webhooks}}
     <li>
@@ -46,7 +18,9 @@
         {{#unless @last}}
           <li>{{@key}}: {{this}}</li>
         {{else}}
-          <button onclick="toggleCollapse(event)" type="button" class="collapsible-trigger">Open {{@key}}</button>
+          <button onclick="toggleCollapse(event)" type="button" class="collapsible-trigger">
+            Open {{@key}}
+          </button>
           <div class="collapsible-content">
             <p>{{json this}}</p>
           </div>
