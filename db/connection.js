@@ -9,7 +9,7 @@ const pgp = require('pg-promise')({
 
 let useSsl = false;
 if (process.env.NODE_ENV === 'development') {
-    connectionString = process.env.DB_URL;
+    connectionString = process.env.HEROKU_POSTGRESQL_IVORY_URL;
  } else {
     connectionString = process.env.HEROKU_POSTGRESQL_IVORY_URL;
     useSsl = false;
