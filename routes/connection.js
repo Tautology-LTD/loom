@@ -1,13 +1,15 @@
-const tools = require("../scripts/function-library");
-const webhookQueryHelper = require("../db/webhooks.js");
+const applicationHelper = require("../scripts/application-helper");
+const apiHelper = require("../scripts/api");
+const webhookQueryHelper = require("../db/webhooks");
+const webhookApiHelper = require("../scripts/webhook-helper");
 const getRawBody = require('raw-body');
 
 module.exports = function(app){
     app.get("/connections/all", (req, res)=>{
         let allPromises = [];
-        let allStores = tools.getStores();
+        let allStores = applicationHelper.getStores();
         for (let i in allStores) {
-            allPromises.push(tools.getStoreWebhooks(allStores[i]));
+            allPromises.push(webhookApiHelper.getStoreWebhooks(allStores[i]));
         }
         Promise.all(allPromises).then((values)=>{
             let returnValue = [];
@@ -27,7 +29,7 @@ module.exports = function(app){
     app.get("/connections/:storeName", (req, res) =>{
         let storeName = req.params.storeName;
 
-        tools.getStoreWebhooks(storeName).then((response)=>{
+        webhookApiHelper.getStoreWebhooks(storeName).then((response)=>{
             res.send(response);
         }).catch((err)=>{
             console.log(err);
@@ -46,7 +48,7 @@ module.exports = function(app){
             address,
             format
         }
-        tools.postRequest(storeName, "webhooks.json", { webhook }).then((response)=>{
+        apiHelper.postRequest(storeName, "webhooks.json", { webhook }).then((response)=>{
             res.send(response);
         }).catch((err)=>{
             console.log(err);
@@ -58,7 +60,7 @@ module.exports = function(app){
         let storeName = req.params.storeName;
         let webhookId = req.params.webhookId;
 
-        tools.delRequest(storeName, `webhooks/${webhookId}.json`).then((response)=>{
+        apiHelper.delRequest(storeName, `webhooks/${webhookId}.json`).then((response)=>{
             console.log(response);
             res.send(`Deleted Webhook ID ${webhookId}`);
         }).catch((err)=>{

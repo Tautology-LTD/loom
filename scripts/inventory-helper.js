@@ -1,151 +1,29 @@
-const request = require('request-promise');
-const { func } = require('../db/connection');
-
-const webhookQueryHelper = require("../db/webhooks.js")
-
-const db = require("../db/connection.js");
-console.log(db);
+const apiHelper = require('./api.js');
+const productHelper = require('./product-helper.js');
 
 module.exports = {
-    // Takes an array of items, and returns an object where the keys are the sku and the value is as on line 23 and 24
-    assembleItems: function (inputItems, quantityField) {
-        let outputItems = {};
-        for(let i = 0; i < inputItems.length; i++){
-           if(inputItems[i].variants){ // if the item variants, create an outputItem for each
-                let variants = inputItems[i].variants;
-                for(let k = 0; k < variants.length; k++){
-                    if(variants[k].sku != null){
-                        outputItems[variants[k].sku] = {
-                            quantity: variants[k][quantityField],
-                            sku:  variants[k].sku
-                        };
-                    }
-                }
-            }else{ // otherwise create an outputItem from the item itself
-                if(inputItems[i].sku != null){
-                    outputItems[inputItems[i].sku] = {
-                        quantity: inputItems[i][quantityField],
-                        sku: inputItems[i].sku
-                    };
-                }
-            }
-        }
-        return outputItems;
-    },
-    //library functions for specific tasks
-    getStoreURL: function (store){
-        switch(store){
-            case "bailey":
-                return process.env.BAILEY_HOST;
-                break;
-            case "dstld":
-                return process.env.DSTLD_HOST
-                break;
-            case "stateside":
-                return process.env.STATESIDE_HOST;
-                break;
-        }
-    },
-
-    getShopifyToken: function (store){
-        switch(store){
-            case "bailey":
-                return process.env.BAILEY_SHOPIFY_TOKEN;
-                break;
-            case "dstld":
-                return process.env.DSTLD_SHOPIFY_TOKEN;
-                break;
-            case "stateside":
-                return process.env.STATESIDE_SHOPIFY_TOKEN;
-                break;
-        }
-    },
-
-    getStores: function (){
-        return ["bailey", "dstld", "stateside"];
-    },
-    getStoreWebhooks: function (store) {
-        return module.exports.getRequest(store, "webhooks.json");
-    },
-    getStoreLocationId: function (store){
-    
-        switch(store){
-            case "bailey":
-                return process.env.BAILEY_LOCATION_ID;
-                break;
-            case "dstld":
-                return process.env.DSTLD_LOCATION_ID;
-                break;
-            case "stateside":
-                return process.env.STATESIDE_LOCATION_ID;
-                break;
-            default:
-                return 0;
-                break;
-        }
-    },
-
-    apiRequest: function (store, method, resource, body){
-        return new Promise((resolve, reject)=>{
-           
-            let TOKEN = module.exports.getShopifyToken(store);
-            if(TOKEN){
-                let requestObject = {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Shopify-Access-Token': TOKEN
-                    },
-                    method: method,
-                    uri: `https://${module.exports.getStoreURL(store)}/admin/api/${ process.env.API_VERSION}/${resource}`,
-
-                }
-                console.log(`${requestObject.method} ${requestObject.uri}`);   
-
-                if(body){
-                    requestObject.body = JSON.stringify(body);
-                }
-                request(requestObject).then(resolve).catch(reject);
-            }else{
-                reject(`No token found for ${store}`);
-            }
-        });
-    },
-
-    getRequest: function (store, resource, callback){
-         return module.exports.apiRequest(store, "GET", resource);
-    },
-
-    postRequest: function (store, resource, body, callback){
-         return module.exports.apiRequest(store, "POST", resource, body);
-
-    },
-
-    delRequest: function (store, resource, callback){
-         return module.exports.apiRequest(store, "DELETE", resource);
-    },
-
     updateStoreLevelByMaster: function (storeToUpdate, masterStore){
         console.log(storeToUpdate, masterStore);
         // return new Promise((resolve, reject)=>{
         //     console.log(`Syncing ${storeToUpdate}'s levels to the leveld of ${masterStore}`);
-        //     let store_location_id = module.exports.getStoreLocationId(storeToUpdate);
+        //     let store_location_id = apiHelper.getStoreLocationId(storeToUpdate);
 
         //     if (!store_location_id) {         
         //         console.log(`No Location Id found for store: ${store}`);
         //         resolve(`No Location Id found for store: ${store}`);                  
         //     } else {
             
-        //         module.exports.getAllProducts(masterStore).then((masterStoreProducts)=>{
+        //         productHelper.getAllProducts(masterStore).then((masterStoreProducts)=>{
     
         //             if (!masterStoreProducts.length) {
         //                 console.log(`No products at ${masterStoreProducts}`);
         //                 resolve(`No products at ${masterStoreProducts}`);
         //             } else {
 
-        //                 let masterItems = module.exports.assembleItems(masterStoreProducts, `inventory_quantity`);
+        //                 let masterItems = productHelper.assembleItems(masterStoreProducts, `inventory_quantity`);
         //                 let masterSKUs = Object.keys(masterItems);
 
-        //                 module.exports.getAllProducts(storeToUpdate).then((storeToUpdateProducts)=>{
+        //                 productHelper.getAllProducts(storeToUpdate).then((storeToUpdateProducts)=>{
                             
         //                     console.log(`Got ${storeToUpdateProducts.length} products from ${storeToUpdate}`);
         //                     if (!storeToUpdateProducts.length) {
@@ -176,7 +54,7 @@ module.exports = {
         //                                         available: masterItems[variant.sku].inventory_quantity
         //                                     };
         //                                     console.log(`Setting Inventory for Store: ${storeToUpdate}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, by quantity: ${body.available}`);
-        //                                     allPromises.push(module.exports.postRequest(storeToUpdate, "inventory_levels/adjust.json", body));
+        //                                     allPromises.push(apiHelper.postRequest(storeToUpdate, "inventory_levels/adjust.json", body));
                                                
         //                                 }
         //                         }
@@ -200,13 +78,12 @@ module.exports = {
         // });
 
     },
-
     updateStoreInventoryBySkus: function (store, line_items){
         return new Promise((resolve, reject)=>{
-            let items = module.exports.assembleItems(line_items, `fulfillable_quantity`);
+            let items = productHelper.assembleItems(line_items, `fulfillable_quantity`);
             let skus = Object.keys(items);
             console.log(`Update Store Inventory By SKUS, Store: ${store}, Total Items: ${Object.keys(items).length}, SKUs: ${skus.join(', ')}`)
-            let store_location_id = module.exports.getStoreLocationId(store);
+            let store_location_id = apiHelper.getStoreLocationId(store);
                         
             if (!skus.length) {
                 console.log(`No matching items found for store ${store}.`);
@@ -215,7 +92,7 @@ module.exports = {
                 console.log(`No Location Id found for store: ${store}`);
                 resolve(`No Location Id found for store: ${store}`);
             } else {
-                module.exports.getAllProducts(store).then((products) => {
+                productHelper.getAllProducts(store).then((products) => {
                     if (!products) {
                         console.log(`No products at ${store}`);
                         resolve(`No products at ${store}`);
@@ -239,7 +116,7 @@ module.exports = {
                                     available_adjustment: -items[variant.sku].quantity
                                 };
                                 console.log(`Adjusting Inventory for Store: ${store}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, by quantity: ${body.available_adjustment}`);
-                                allPromises.push(module.exports.postRequest(store, "inventory_levels/adjust.json", body));
+                                allPromises.push(apiHelper.postRequest(store, "inventory_levels/adjust.json", body));
                             }
                         }
                         Promise.all(allPromises).then((values)=>{
@@ -255,45 +132,5 @@ module.exports = {
                 });
             }
         });
-    },
-   
-    getAllProducts: function (store, products = []) {
-       return new Promise((resolve, reject)=>{
-            let limit = 250;
-            let link = `products.json?limit=${limit}`;
-            if (products.length) {
-                link = `${link}&since_id=${products[products.length-1].id}`
-            }
-
-            module.exports.getRequest(store, link).then((res) => {
-                let newProducts = JSON.parse(res).products;
-                products = [...products, ...newProducts];
-                if (newProducts.length == limit) {
-                    module.exports.getAllProducts(store, products).then(resolve);
-                } else {
-                    console.log(`Resolving getAllProducts for ${store} with ${products.length} total products`);
-                    resolve(products);
-                }
-            });
-       });
-    },
-
-    getDashboardData: function(){
-        return new Promise((resolve, reject)=>{
-            let allPromises = [];
-            allPromises.push(webhookQueryHelper.limit(5));
-            allPromises.push(module.exports.getStores());
-
-            Promise.all(allPromises).then((values)=>{
-                let data = {};
-                data.webhooks = values[0];
-                data.storeLinks = values[1];
-                console.log(data);
-                resolve(data);
-            }).catch((errors)=>{
-                console.log(errors);
-                reject(errors);
-            })
-        });
     }
-};
+}

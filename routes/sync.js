@@ -1,52 +1,61 @@
-const tools = require("../scripts/function-library");
-const webhookQueryHelper  = require("../db/webhooks");
- 
+const applicationHelper = require("../scripts/application-helper.js");
+
+function validStore(store) {
+    let allStores = applicationHelper.getStores();
+    return allStores.includes(store);
+}
+
 module.exports = function(app){
-   
     app.get("/sync", (req, res)=>{
-        let stores = tools.getStores();
-        res.render("sync.hbs", {step:1, stores, header: "Which store would you like to sync from?"});
+        let stores = applicationHelper.getStores();
+        res.render("sync/index.hbs", {stores});
     });
 
     app.get("/sync/:masterStore", (req, res)=>{
-        let allStores =  tools.getStores();
-        let masterStore =  req.params.masterStore;
-        let stores = allStores.filter((store)=> store != masterStore);
-        if(!allStores.includes(masterStore)){
+        let masterStore = req.params.masterStore;
+        let otherStores = applicationHelper.getStores().filter((store)=> store != masterStore);
+
+        if (!validStore(masterStore)) {
             res.redirect("/sync");
         }
-        console.log(masterStore);
-        stores.push("all");
-        res.render("sync.hbs", {step:2, stores, masterStore, header:"Which store would you like to sync to?"});
+
+        res.render("sync/sync.hbs", {masterStore, otherStores});
     });
 
     app.get("/sync/:masterStore/to/:storeToUpdate", (req, res)=>{
         let masterStore =  req.params.masterStore;
         let storeToUpdate =  req.params.storeToUpdate;
-        let allStores =  tools.getStores();
-        allStores.push("all");
         
-        if(!allStores.includes(masterStore) || !allStores.includes(storeToUpdate) ){
-            res.redirect("/sync");
+        if (!validStore(masterStore) || !validStore(storeToUpdate)) {
+            res.redirect(`/sync/${masterStore}`);
         }
-        res.render("sync.hbs", {step:3, masterStore, storeToUpdate, header: `Are you sure you want to sync ${masterStore} to ${storeToUpdate}?`});
+
+        res.render("sync/confirm.hbs", {masterStore, storeToUpdate});
     });
 
     app.post("/sync/:masterStore/to/:storeToUpdate", (req, res)=>{
-        let masterStore =  req.params.masterStore;
-        let storeToUpdate =  req.params.storeToUpdate;
-        let allStores =  tools.getStores();
-        console.log(storeToUpdate, masterStore);
-        if(!allStores.includes(masterStore) || !allStores.includes(storeToUpdate) ){
-            res.sendStatus(500);
+        let masterStore = req.params.masterStore;
+        let storeToUpdate = req.params.storeToUpdate;
+        let allStores = applicationHelper.getStores();
+
+        if (!validStore(masterStore) || !validStore(storeToUpdate) ){
+            res.sendStatus(422);
         }
-        // tools.updateStoreLevelByMaster(storeToUpdate, masterStore).then((response)=>{
+        // inventoryHelper.updateStoreLevelByMaster(storeToUpdate, masterStore).then((response)=>{
         //     console.log(response);
         // });
+        res.redirect(`/sync/${masterStore}/to/${storeToUpdate}/done`);
+    });
+
+    app.get("/sync/:masterStore/to/:storeToUpdate/done", (req, res)=> {
+        let masterStore = req.params.masterStore;
+        let storeToUpdate = req.params.storeToUpdate;
+
+        res.render("sync/done.hbs", {masterStore, storeToUpdate});
     });
     
     app.get("/sync/*", (req, res)=>{
         console.log("DEFAULT");
-        res.redirect("/sync");
+        res.redirect("/sync/index.hbs");
     });
 }

@@ -1,4 +1,3 @@
-const tools = require("../scripts/function-library");
 const webhookQueryHelper  = require("../db/webhooks");
  
 module.exports = function(app){
@@ -10,7 +9,7 @@ module.exports = function(app){
     });
 
     app.get("/db/create", (req, res)=>{
-        // tools.createWebhookTable().then((response)=>{ // This  code wouldn't even run because removed createWebhookTable from the function library
+        // webhookQueryHelper.createTable().then((response)=>{ // This  code wouldn't even run because removed createWebhookTable from the function library
         //     console.log(response);
         //     res.send("Table created");
         // }).catch((err)=>{
