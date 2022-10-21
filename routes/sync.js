@@ -71,7 +71,8 @@ module.exports = function(app){
                             let updates = [];
                           
                             let variants = productHelper.deduplicateVariants(storeToUpdateProducts);
-                           
+                            let timeout = 0;
+
                         
                             variants = Object.values(variants); // de-duplicate the variants
                              console.log(`Now we have ${storeToUpdateProducts.length} products, ${variants.length} variants from ${storeToUpdate}`);
@@ -81,8 +82,7 @@ module.exports = function(app){
                                 if (variant.sku.includes("TEST_SKU") && masterSKUs.includes(variant.sku) && masterItems[variant.sku].quantity !== variant.inventory_quantity) {
                                  // if(typeof variants[k].sku != null && masterSkus.includes(variants[k].sku) && variants[k].sku.includes("TEST_SKU")
                                  // &&  masterItems[variants[k].sku].quantity != variants[k].inventory_quantity ){
-                                     let timeout = 0;
-                                    
+
                                      updates.push(()=>{
                                         return new Promise((resolve, reject)=>{
                                             let body = {
@@ -90,24 +90,27 @@ module.exports = function(app){
                                                 inventory_item_id: variant.inventory_item_id,
                                                 available: masterItems[variant.sku].quantity
                                             };
+ 
                                             applicationHelper.delay(timeout).then(()=>{
+ 
                                                 console.log(`Setting Inventory for Store: ${storeToUpdate}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, to quantity: ${body.available}`);                                              
                                                 resolve(apiHelper.postRequest(storeToUpdate, "inventory_levels/set.json", body));
+
                                             });
                                             timeout += 250;
-                                            
-    
+     
                                         });
                                        
                                     });
                                 }
                             }
-                             for (let updateFunction of updates) {
+
+                            for (let updateFunction of updates) {
                                  allPromises.push(updateFunction());
 
                             }
- 
                             Promise.all(allPromises).then((values)=>{
+
                                 console.log(values);
                                 res.redirect(`/sync/${masterStore}/to/${storeToUpdate}/done`);
 
