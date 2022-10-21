@@ -21,6 +21,16 @@ module.exports = {
             });
        });
     },
+    deduplicateVariants: function(productArray){
+        let variants = {};
+        for (let product of productArray) {
+            for (let variant of product.variants) {
+                variants[variant.id] = variant;
+            }
+        }
+        return variants;
+
+    },
     assembleItems: function (inputItems, quantityField) {
         let outputItems = {};
         for(let i = 0; i < inputItems.length; i++){
