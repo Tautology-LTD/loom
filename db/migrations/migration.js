@@ -1,21 +1,18 @@
-import {migrate} from "postgres-migrations"
+const migrate = import("postgres-migrations");
 
 async function runMigration() {
-  const dbConfig = {
-    database: process.env.DATABASE_NAME,
-    user: process.env.DATABASE_USERNAME,
-    password: process.env.DATABASE_PASSWORD,
-    host: process.env.DATABASE_HOST,
-    port: process.env.DATABASE_PORT,
 
-    // Default: false for backwards-compatibility
-    // This might change!
+  let dbConfig = {
+    connectionString: process.env.DB_URL,
     ensureDatabaseExists: true,
-
-    // Default: "postgres"
-    // Used when checking/creating "database-name"
     defaultDatabase: "postgres"
-  }
+  };
 
+  
+
+    
+  console.log(dbConfig);
   await migrate(dbConfig, ".")
 }
+
+runMigration();

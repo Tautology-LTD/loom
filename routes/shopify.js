@@ -1,6 +1,8 @@
 const applicationHelper = require("../scripts/application-helper");
 const inventoryHelper = require("../scripts/inventory-helper")
 const webhookQueryHelper = require("../db/webhooks");
+const Queue = require('bee-queue');
+const queue = new Queue('webhooksQueue');
 
 const getRawBody = require('raw-body');
 
@@ -20,15 +22,18 @@ module.exports = function(app){
                 } else {
                     webhookQueryHelper.insert(order.id, 'order/create', order).then((response)=>{
                         console.log(response);
-                    });
 
-                    let storePromises = []
-                    for (let i = 0; i < storesToUpdate.length; i++) {
-                        storePromises.push(inventoryHelper.updateStoreInventoryBySkus(storesToUpdate[i], order.line_items));
-                    }
-                    Promise.all(storePromises).then((response) => {
-                        webhookQueryHelper.update({executed_at: Date.now()}, {order_id: order.id});
+                    
+                        const job = queue.createJob({webhookId: response.id, storeName: storeName});
+                        job.save();
+                        job.on('succeeded', (result) => {
+                            console.log(`Received result for job ${job.id}: ${result}`);
+                        });
+
                     });
+                    
+                 
+                   
                 }
 
                 res.status(200);

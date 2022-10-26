@@ -9,13 +9,13 @@ module.exports = function(app){
     });
 
     app.get("/db/create", (req, res)=>{
-        // webhookQueryHelper.createTable().then((response)=>{ // This  code wouldn't even run because removed createWebhookTable from the function library
-        //     console.log(response);
-        //     res.send("Table created");
-        // }).catch((err)=>{
-        //     console.log(err);
-        //     res.send(err);
-        // });;
+        webhookQueryHelper.createTable().then((response)=>{ // This  code wouldn't even run because removed createWebhookTable from the function library
+            console.log(response);
+            res.send("Table created");
+        }).catch((err)=>{
+            console.log(err);
+            res.send(err);
+        });;
     });
     app.get("/db/webhooks", (req, res)=>[
         webhookQueryHelper.all().then((data)=>{

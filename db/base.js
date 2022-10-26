@@ -42,11 +42,11 @@ module.exports = function(mx) {
     };
 
     mx.update = function(update, query) {
-        let update_statement = update.map(function(value, field) {
-            return field + ' ' + value
+        let update_statement = Object.keys(update).map(function(key, index) {
+            return key + ' ' +  update[key]
         }).join(', ');
-        let where_statement = query.map(function(value, field) {
-            return field + ' ' + value
+        let where_statement = Object.keys(query).map(function(key, index) {
+            return key + ' ' + query[key]
         }).join(', ');
         return mx.connection.manyOrNone(`UPDATE ${mx.tableName} SET ${update_statement} WHERE ${where_statement}`);
     };

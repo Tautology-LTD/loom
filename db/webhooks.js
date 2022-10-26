@@ -9,6 +9,6 @@ module.exports = require("../db/base.js")({
         payload: 'json'
     },
     insert: function(orderId, type, payload) {
-        return module.exports.connection.none(`INSERT INTO ${module.exports.tableName} (order_id, type, received_at, payload) VALUES ($1, $2, ${Date.now()}, $3);`, [orderId, type, payload]);
+        return module.exports.connection.one(`INSERT INTO ${module.exports.tableName} (order_id, type, received_at, payload) VALUES ($1, $2, ${ Date.now()}, $3); SELECT * FROM ${module.exports.tableName} LIMIT 1; `, [orderId, type, payload]);
     }
 });

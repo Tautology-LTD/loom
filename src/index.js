@@ -29,11 +29,27 @@ require("../routes/shopify")(app);
 require("../routes/sync")(app);
 app.use(express.static(path.resolve('./public')));
 
+app.get("/addToQueue/:storeName/:webhookId", (req, res)=>{
+    let webhookId = req.params.webhookId;
+    let storeName = req.params.storeName;
+    
+    const Queue = require('bee-queue');
+    const queue = new Queue('webhooksQueue');
+
+    const job = queue.createJob({webhookId, storeName});
+    job.save();
+    job.on('succeeded', (result) => {
+        console.log(`Received result for job ${job.id}: ${result}`);
+    });
+ 
+});
+
 app.get("/", (req, res) => {
     let allPromises = [];
     allPromises.push(webhookQueryHelper.limit(5));
     allPromises.push(applicationHelper.getStores());
 
+    
     Promise.all(allPromises).then((values)=>{
         let data = {};
         data.webhooks = values[0];
