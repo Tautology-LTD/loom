@@ -43,12 +43,14 @@ module.exports = function(mx) {
 
     mx.update = function(update, query) {
         let update_statement = Object.keys(update).map(function(key, index) {
-            return key + ' ' +  update[key]
+            return key + ' = ' +  update[key]
         }).join(', ');
         let where_statement = Object.keys(query).map(function(key, index) {
-            return key + ' ' + query[key]
-        }).join(', ');
-        return mx.connection.manyOrNone(`UPDATE ${mx.tableName} SET ${update_statement} WHERE ${where_statement}`);
+            return key + ' = ' + query[key]
+        }).join(' AND ');
+        let final_query = `UPDATE ${mx.tableName} SET ${update_statement} WHERE ${where_statement}`;
+        console.log(final_query);
+        return mx.connection.manyOrNone(final_query);
     };
 
     return mx;

@@ -19,8 +19,11 @@ module.exports = function(app){
             webhookQueryHelper.findBy({order_id: order.id}).then((data)=>{
                 if (data) {
                     console.log("Order already received.");
+
+                    res.status(200);
+                    res.send();
                 } else {
-                    webhookQueryHelper.insert(order.id, 'order/create', order).then((response)=>{
+                    webhookQueryHelper.insert(storeName, order.id, 'order/create', order).then((response)=>{
                         console.log(response);
 
                     
@@ -30,14 +33,15 @@ module.exports = function(app){
                             console.log(`Received result for job ${job.id}: ${result}`);
                         });
 
+                        res.status(201);
+                        res.send();
+
                     });
                     
                  
                    
                 }
 
-                res.status(200);
-                res.send();
             })
         });
     });

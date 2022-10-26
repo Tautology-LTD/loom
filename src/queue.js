@@ -34,7 +34,7 @@ queue.process(function (job, done) {
             return done(null, job.data.webhookId);
         }else{
             
-            let storesToUpdate = applicationHelper.getStores().filter(item => item !== order.storeName);
+            let storesToUpdate = applicationHelper.getStores().filter(item => item !== data.store_name);
             let storePromises = [];
 
             for (let i = 0; i < storesToUpdate.length; i++) {

@@ -13,21 +13,30 @@
 <ol id="webhooks">
   {{#webhooks}}
     <li>
-      {{#each this}}
-      <ul>
-        {{#unless @last}}
-          <li>{{@key}}: {{this}}</li>
-        {{else}}
-          <button onclick="toggleCollapse(event)" type="button" class="collapsible-trigger">
-            Open {{@key}}
-          </button>
-          <div class="collapsible-content">
-            <p>{{json this}}</p>
-          </div>
-        {{/unless}}
+       <ul>
+          <li>id: {{this.id}}</li>
+
+          <li>store name: {{this.store_name}}</li>
+          <li>order id: {{this.order_id}}</li>
+          <li>type: {{this.type}}</li>
+          <li>received_at: {{this.received_at}}</li>
+          <li>executed_at: {{this.executed_at}}
+            {{#unless this.executed_at}}
+              <a href="{{this.id}}/reenqueue">Reenqueue this webhook</a>
+            {{/unless}}
+          </li>
+          <li>
+            <button onclick="toggleCollapse(event)" type="button" class="collapsible-trigger">
+              Open payload
+            </button>
+            <div class="collapsible-content">
+              <p>{{json this.payload}}</p>
+            </div> 
+          </li>
+
+        
       </ul>
-      {{/each}}
-    </li>
+     </li>
   {{/webhooks}}
 </ol>
         
