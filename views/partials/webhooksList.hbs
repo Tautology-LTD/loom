@@ -22,7 +22,7 @@
           <li>received_at: {{this.received_at}}</li>
           <li>executed_at: {{this.executed_at}}
             {{#unless this.executed_at}}
-              <a href="{{this.id}}/reenqueue">Reenqueue this webhook</a>
+              <a href="/db/webhooks/{{this.id}}/reenqueue">Reenqueue this webhook</a>
             {{/unless}}
           </li>
           <li>

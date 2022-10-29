@@ -8,13 +8,16 @@ function buildQueryString(params, logicalConjunction = 'AND') {
 
 module.exports = function(mx) {
     mx.connection = require('./connection.js'),
+    mx.dropTable = function() {
+        return mx.connection.none(`DROP TABLE IF EXISTS ${mx.tableName};`);
+    };
     mx.createTable = function() {
         let tableStructure = mx.tableStructure;
         let tableStructurePairs = [];
         for (let fieldName in tableStructure) {
             tableStructurePairs.push(`${fieldName} ${tableStructure[fieldName]}`);
         }
-        return mx.connection.none(`DROP TABLE IF EXISTS ${mx.tableName}; CREATE TABLE ${mx.tableName} (${tableStructurePairs.join(', ')})`);
+        return mx.connection.none(`CREATE TABLE ${mx.tableName} (${tableStructurePairs.join(', ')})`);
     };
     mx.select = function(queryFunction, query = null) {
         let selectStatement = `SELECT * FROM ${mx.tableName}`;
@@ -24,6 +27,7 @@ module.exports = function(mx) {
         }
         return queryFunction(selectStatement);
     };
+    mx.query = mx.connection.query;
     mx.all = function() {
         return mx.select(mx.connection.manyOrNone);
     };
@@ -52,6 +56,7 @@ module.exports = function(mx) {
         console.log(final_query);
         return mx.connection.manyOrNone(final_query);
     };
+
 
     return mx;
 };

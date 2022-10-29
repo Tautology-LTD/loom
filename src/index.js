@@ -1,8 +1,5 @@
-const crypto = require('crypto');
-const nonce = require('nonce')();
-const querystring = require('querystring');
+console.log(__filename);
 
-const cookie = require('cookie');
 const express = require('express');
 const path = require('path');
 const exphbs = require('express-handlebars');

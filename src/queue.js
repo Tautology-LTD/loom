@@ -1,19 +1,10 @@
-const crypto = require('crypto');
-const nonce = require('nonce')();
-const querystring = require('querystring');
-
-const cookie = require('cookie');
-const express = require('express');
-const path = require('path');
-const exphbs = require('express-handlebars');
+console.log(__filename);
 require('dotenv').config();
 
 const applicationHelper = require("../scripts/application-helper");
 const webhookQueryHelper = require("../db/webhooks");
 const inventoryHelper = require("../scripts/inventory-helper");
 
-const helpers = require("../scripts/hbs-helpers");
-const app = express();
 
 
 const Queue = require('bee-queue');
@@ -28,7 +19,8 @@ queue.process(function (job, done) {
     //
     webhookQueryHelper.findBy({id: job.data.webhookId}).then((data)=>{
         console.log(data);
-         let order = data.payload;
+      if(data){
+        let order = data.payload;
         if(data.executed_at){
             console.log("Webhook already executed.");
             return done(null, job.data.webhookId);
@@ -41,7 +33,7 @@ queue.process(function (job, done) {
                 storePromises.push(inventoryHelper.updateStoreInventoryBySkus(storesToUpdate[i], order.line_items));
             }
             Promise.all(storePromises).then((responses) => {
-                let updateObject = {executed_at: Date.now()};
+                let updateObject = {executed_at: "CURRENT_TIMESTAMP"};
                 console.log(updateObject);
                 webhookQueryHelper.update(updateObject, {id: job.data.webhookId});
                 return done(null, job.data.webhookId);
@@ -49,6 +41,7 @@ queue.process(function (job, done) {
                 
             });
         }
+      }
     });
    
 });

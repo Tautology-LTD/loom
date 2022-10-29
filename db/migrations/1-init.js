@@ -1,13 +1,13 @@
 
-const webhookQueryHelper = require("../db/webhooks");
+const webhookQueryHelper = require("../webhooks");
+require('dotenv').config();
 
 let tableStructure = webhookQueryHelper.tableStructure;
 let tableStructurePairs = [];
 for (let fieldName in tableStructure) {
     tableStructurePairs.push(`${fieldName} ${tableStructure[fieldName]}`);
 }
-createWebhooksTable = `DROP TABLE IF EXISTS ${webhookQueryHelper.tableName}; CREATE TABLE ${webhookQueryHelper.tableName} (${tableStructurePairs.join(', ')})`;
+let createWebhooksTable = `CREATE TABLE ${webhookQueryHelper.tableName} (${tableStructurePairs.join(', ')});`;
 
- console.log(createWebhooksTable);
  
 module.exports.generateSql = () => `${createWebhooksTable}`;

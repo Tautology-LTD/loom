@@ -1,0 +1,6 @@
+
+
+Update production database with new store_name field (migration)
+
+Make sure we can connect to Heroku Redis
+
