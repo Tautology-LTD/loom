@@ -1,8 +1,6 @@
 const applicationHelper = require("../scripts/application-helper");
 const apiHelper = require("../scripts/api");
-const webhookQueryHelper = require("../db/webhooks");
 const webhookApiHelper = require("../scripts/webhook-helper");
-const getRawBody = require('raw-body');
 
 module.exports = function(app){
     app.get("/connections/all", (req, res)=>{

@@ -3,7 +3,6 @@ const pm = require("postgres-migrations");
 
 async function runMigration() {
 let databaseURL = new URL(process.env.DB_URL);
-console.log(databaseURL);
 
   let dbConfig = {
     database: databaseURL.pathname.split("/").pop(),
@@ -15,7 +14,6 @@ console.log(databaseURL);
     defaultDatabase: "postgres"
   };
   
- console.log(dbConfig);
      await pm.migrate(dbConfig, "./db/migrations");
 }
 

@@ -8,10 +8,12 @@ const inventoryHelper = require("../scripts/inventory-helper");
 
 
 const Queue = require('bee-queue');
-const queue = new Queue('webhooksQueue');
+//const queue = new Queue('webhooksQueue');
+
+const orderCreateQueue = new Queue('orderCreateQueue');
 
 // Process jobs from as many servers or processes as you like
-queue.process(function (job, done) {
+orderCreateQueue.process(function (job, done) {
     console.log(`Processing job id: ${job.id} webhook id: ${job.data.webhookId}`);
      //get webhook out of database
     //take webhook payload
@@ -30,7 +32,7 @@ queue.process(function (job, done) {
             let storePromises = [];
 
             for (let i = 0; i < storesToUpdate.length; i++) {
-                storePromises.push(inventoryHelper.updateStoreInventoryBySkus(storesToUpdate[i], order.line_items));
+                storePromises.push(inventoryHelper.decreaseStoreInventoryBySkus(storesToUpdate[i], order.line_items));
             }
             Promise.all(storePromises).then((responses) => {
                 let updateObject = {executed_at: "CURRENT_TIMESTAMP"};

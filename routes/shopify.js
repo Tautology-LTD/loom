@@ -1,8 +1,7 @@
 const applicationHelper = require("../scripts/application-helper");
-const inventoryHelper = require("../scripts/inventory-helper")
 const webhookQueryHelper = require("../db/webhooks");
 const Queue = require('bee-queue');
-const queue = new Queue('webhooksQueue');
+const orderCreateQueue = new Queue('orderCreateQueue');
 
 const getRawBody = require('raw-body');
 
@@ -27,7 +26,7 @@ module.exports = function(app){
                         console.log(response);
 
                     
-                        const job = queue.createJob({webhookId: response.id, storeName: storeName});
+                        const job = orderCreateQueue.createJob({webhookId: response.id, storeName: storeName});
                         job.save();
                         job.on('succeeded', (result) => {
                             console.log(`Received result for job ${job.id}: ${result}`);
