@@ -36,6 +36,9 @@ module.exports = {
                                     inventory_item_id: variant.inventory_item_id,
                                     available_adjustment: -items[variant.sku].quantity
                                 };
+                                if(process.env.MOCK_MODE){
+                                    body.available_adjustment = 0;
+                                }
                                 console.log(`Adjusting Inventory for Store: ${store}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, by quantity: ${body.available_adjustment}`);
                                 allPromises.push(apiHelper.postRequest(store, "inventory_levels/adjust.json", body));
                             }
