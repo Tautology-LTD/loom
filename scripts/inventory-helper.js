@@ -1,7 +1,86 @@
 const apiHelper = require('./api.js');
 const productHelper = require('./product-helper.js');
+const applicationHelper = require("../scripts/application-helper.js");
 
 module.exports = {
+    setStoreLevelsBySkus: function (storeToUpdate, items){
+        return new Promise((resolve, reject)=>{
+            console.log(`Updating ${storeToUpdate}'s levels to the levels of ${items}`);
+            let store_location_id = apiHelper.getStoreLocationId(storeToUpdate);
+            if (!store_location_id) {         
+                console.log(`No Location Id found for store: ${storeToUpdate}`);
+                resolve(`No Location Id found for store: ${storeToUpdate}`);                  
+            } else {
+                productHelper.getAllProducts(storeToUpdate).then((storeToUpdateProducts)=>{
+        
+                    if (!storeToUpdateProducts.length) {
+                        console.log(`No products at ${storeToUpdate}`);
+                        resolve(`No products at ${storeToUpdate}`);
+                    } else {
+                        let masterItems = productHelper.assembleItems(items, `quantity`);
+                        let masterSKUs = Object.keys(masterItems);
+                        console.log("MASTER SKUS: ", masterSKUs);
+                        let allPromises = [];
+                        let updates = [];
+                      
+                        let variants = productHelper.deduplicateVariants(storeToUpdateProducts);
+                        let timeout = 0;
+
+                    
+                        variants = Object.values(variants); // de-duplicate the variants
+                         console.log(`Now we have ${storeToUpdateProducts.length} products, ${variants.length} variants from ${storeToUpdate}`);
+
+                        for (let variant of variants) {
+                            if (variant.sku && variant.sku.includes("TEST_SKU") && masterSKUs.includes(variant.sku) && masterItems[variant.sku].quantity !== variant.inventory_quantity) {
+                             // if(typeof variants[k].sku != null && masterSkus.includes(variants[k].sku) && variants[k].sku.includes("TEST_SKU")
+                             // &&  masterItems[variants[k].sku].quantity != variants[k].inventory_quantity ){
+                                console.log("VARIANT: ", variant);
+
+                                 updates.push(()=>{
+                                    return new Promise((resolve, reject)=>{
+                                        let body = {
+                                            location_id: store_location_id,
+                                            inventory_item_id: variant.inventory_item_id,
+                                            available: masterItems[variant.sku].quantity
+                                        };
+
+                                        if(process.env.MOCK_MODE){
+                                            body.available = variant.inventory_quantity;
+                                        }
+                                        applicationHelper.delay(timeout).then(()=>{
+
+                                            console.log(`Setting Inventory for Store: ${storeToUpdate}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, to quantity: ${body.available}`);                                              
+                                            resolve(apiHelper.postRequest(storeToUpdate, "inventory_levels/set.json", body));
+
+                                        });
+                                        timeout += 250;
+ 
+                                    });
+                                   
+                                });
+                            }
+                        }
+
+                        for (let updateFunction of updates) {
+                             allPromises.push(updateFunction());
+
+                        }
+                        Promise.all(allPromises).then((values)=>{
+
+                            console.log(values);
+                            resolve(values);
+
+                        }).catch((err)=>{
+                            console.log(err);
+                        })
+                       
+                    }   
+                });
+            }
+
+        });
+    },
+
     setStoreInventoryLevels: function (masterStore, storeToUpdate){
         return new Promise((resolve, reject)=>{
 
@@ -54,6 +133,9 @@ module.exports = {
                                                     available: masterItems[variant.sku].quantity
                                                 };
      
+                                                if(process.env.MOCK_MODE){
+                                                    body.available = variant.inventory_quantity;
+                                                }
                                                 applicationHelper.delay(timeout).then(()=>{
      
                                                     console.log(`Setting Inventory for Store: ${storeToUpdate}, SKU: ${variant.sku}, Variant ID: ${variant.id}, InventoryItem ID: ${body.inventory_item_id}, to quantity: ${body.available}`);                                              
