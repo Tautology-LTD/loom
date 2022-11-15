@@ -121,7 +121,7 @@ module.exports = {
     
                                 for (let variant of variants) {
                                     
-                                    if (variant.sku.includes("TEST_SKU") && masterSKUs.includes(variant.sku) && masterItems[variant.sku].quantity !== variant.inventory_quantity) {
+                                    if (variant.sku && variant.sku.includes("TEST_SKU") && masterSKUs.includes(variant.sku) && masterItems[variant.sku].quantity !== variant.inventory_quantity) {
                                      // if(typeof variants[k].sku != null && masterSkus.includes(variants[k].sku) && variants[k].sku.includes("TEST_SKU")
                                      // &&  masterItems[variants[k].sku].quantity != variants[k].inventory_quantity ){
     
