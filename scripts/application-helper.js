@@ -9,13 +9,11 @@ module.exports = {
     },
     parseCSV: function(csv_string){
       let lines = csv_string.split(/\r?\n/);
-      console.log("lines:", lines);
-      let headers = lines[0].split(",");
-      console.log("headers:", headers);
-
-      lines.shift();
-      console.log("new lines: ", lines);
-
+      let headers = lines.shift().split(",");
+      console.log(headers);
+      console.log(lines);
+      
+ 
       let data = [];
       for(let i in lines){
          let bits = lines[i].split(",");

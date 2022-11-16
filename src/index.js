@@ -38,7 +38,6 @@ app.get("/", (req, res) => {
         let data = {};
         data.webhooks = values[0];
         data.storeLinks = values[1];
-        console.log(data);
         res.render("home.hbs", data);
     }).catch((errors)=>{
         console.log(errors);

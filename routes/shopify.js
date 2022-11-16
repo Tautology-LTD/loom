@@ -23,9 +23,7 @@ module.exports = function(app){
                     res.send();
                 } else {
                     webhookQueryHelper.insert(storeName, order.id, 'order/create', order).then((response)=>{
-                        console.log(response);
-
-                    
+                         
                         const job = orderCreateQueue.createJob({webhookId: response.id, storeName: storeName});
                         job.save();
                         job.on('succeeded', (result) => {
@@ -50,7 +48,6 @@ module.exports = function(app){
          
         console.log(`GET request for products at ${storeName}`);
         productHelper.getAllProducts(storeName).then((products)=>{
-            console.log(products);
             console.log(`Sending all products from ${storeName}`);
             res.send(products);
         });

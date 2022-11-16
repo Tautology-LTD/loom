@@ -5,7 +5,6 @@ const applicationHelper = require("../scripts/application-helper.js");
 module.exports = {
     setStoreLevelsBySkus: function (storeToUpdate, items){
         return new Promise((resolve, reject)=>{
-            console.log(`Updating ${storeToUpdate}'s levels to the levels of ${items}`);
             let store_location_id = apiHelper.getStoreLocationId(storeToUpdate);
             if (!store_location_id) {         
                 console.log(`No Location Id found for store: ${storeToUpdate}`);
@@ -19,7 +18,8 @@ module.exports = {
                     } else {
                         let masterItems = productHelper.assembleItems(items, `quantity`);
                         let masterSKUs = Object.keys(masterItems);
-                        console.log("MASTER SKUS: ", masterSKUs);
+                        console.log(`Updating ${storeToUpdate}'s levels by ${masterSKUs}.`);
+
                         let allPromises = [];
                         let updates = [];
                       
@@ -31,11 +31,8 @@ module.exports = {
                          console.log(`Now we have ${storeToUpdateProducts.length} products, ${variants.length} variants from ${storeToUpdate}`);
 
                         for (let variant of variants) {
-                            if (variant.sku && variant.sku.includes("TEST_SKU") && masterSKUs.includes(variant.sku) && masterItems[variant.sku].quantity !== variant.inventory_quantity) {
-                             // if(typeof variants[k].sku != null && masterSkus.includes(variants[k].sku) && variants[k].sku.includes("TEST_SKU")
-                             // &&  masterItems[variants[k].sku].quantity != variants[k].inventory_quantity ){
-                                console.log("VARIANT: ", variant);
-
+                            if (variant.sku && masterSKUs.includes(variant.sku) && masterItems[variant.sku].quantity !== variant.inventory_quantity) {
+                            
                                  updates.push(()=>{
                                     return new Promise((resolve, reject)=>{
                                         let body = {
@@ -67,11 +64,12 @@ module.exports = {
                         }
                         Promise.all(allPromises).then((values)=>{
 
-                            console.log(values);
+                            console.log("Updated: ", values);
                             resolve(values);
 
                         }).catch((err)=>{
                             console.log(err);
+                            reject(err);
                         })
                        
                     }   
@@ -121,7 +119,7 @@ module.exports = {
     
                                 for (let variant of variants) {
                                     
-                                    if (variant.sku && variant.sku.includes("TEST_SKU") && masterSKUs.includes(variant.sku) && masterItems[variant.sku].quantity !== variant.inventory_quantity) {
+                                    if (variant.sku && masterSKUs.includes(variant.sku) && masterItems[variant.sku].quantity !== variant.inventory_quantity) {
                                      // if(typeof variants[k].sku != null && masterSkus.includes(variants[k].sku) && variants[k].sku.includes("TEST_SKU")
                                      // &&  masterItems[variants[k].sku].quantity != variants[k].inventory_quantity ){
     
@@ -178,7 +176,7 @@ module.exports = {
         return new Promise((resolve, reject)=>{
             let items = productHelper.assembleItems(line_items, `fulfillable_quantity`);
             let skus = Object.keys(items);
-            console.log(`Update Store Inventory By SKUS, Store: ${store}, Total Items: ${Object.keys(items).length}, SKUs: ${skus.join(', ')}`)
+            console.log(`Decreasing Store Inventory By SKUS, Store: ${store}, Total Items: ${Object.keys(items).length}, SKUs: ${skus.join(', ')}`)
             let store_location_id = apiHelper.getStoreLocationId(store);
                         
             if (!skus.length) {
@@ -201,7 +199,7 @@ module.exports = {
                         variants = Object.values(variants); // de-duplicate the variants
                         console.log(`Now we have ${products.length} products, ${variants.length} variants from ${store}`);
                          for (let variant of variants) {
-                             if (skus.includes(variant.sku)) {
+                             if (variant.sku && skus.includes(variant.sku)) {
                                 let body = {
                                     location_id: store_location_id,
                                     inventory_item_id: variant.inventory_item_id,
@@ -232,7 +230,7 @@ module.exports = {
         return new Promise((resolve, reject)=>{
             let items = productHelper.assembleItems(line_items, `fulfillable_quantity`);
             let skus = Object.keys(items);
-            console.log(`Update Store Inventory By SKUS, Store: ${store}, Total Items: ${Object.keys(items).length}, SKUs: ${skus.join(', ')}`)
+            console.log(`Increasing Store Inventory By SKUS, Store: ${store}, Total Items: ${Object.keys(items).length}, SKUs: ${skus.join(', ')}`)
             let store_location_id = apiHelper.getStoreLocationId(store);
                         
             if (!skus.length) {
@@ -255,7 +253,7 @@ module.exports = {
                         variants = Object.values(variants); // de-duplicate the variants
                         console.log(`Now we have ${products.length} products, ${variants.length} variants from ${store}`);
                          for (let variant of variants) {
-                             if (skus.includes(variant.sku)) {
+                             if (variant.sku && skus.includes(variant.sku)) {
                                 let body = {
                                     location_id: store_location_id,
                                     inventory_item_id: variant.inventory_item_id,
